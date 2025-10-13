@@ -3,21 +3,21 @@ import type { NextRequest } from 'next/server';
 
 // Rutas que requieren autenticación
 const protectedRoutes = [
-    '/dashboard',
-    '/actividades',
-    '/asociados',
-    '/clientes',
-    '/comisiones',
-    '/configuracion',
-    '/leads',
-    '/notificaciones',
-    '/perfil',
-    '/peticiones',
-    '/polizas',
-    '/reportes',
-    '/siniestros',
-    '/tareas',
-    '/usuarios'
+    // '/dashboard',
+    // '/actividades',
+    // '/asociados',
+    // '/clientes',
+    // '/comisiones',
+    // '/configuracion',
+    // '/leads',
+    // '/notificaciones',
+    // '/perfil',
+    // '/peticiones',
+    // '/polizas',
+    // '/reportes',
+    // '/siniestros',
+    // '/tareas',
+    // '/usuarios'
 ];
 
 // Rutas de autenticación
