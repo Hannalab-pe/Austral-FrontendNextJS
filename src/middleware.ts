@@ -3,50 +3,126 @@ import type { NextRequest } from 'next/server';
 
 // Rutas que requieren autenticación
 const protectedRoutes = [
-    // '/dashboard',
-    // '/actividades',
-    // '/asociados',
-    // '/clientes',
-    // '/comisiones',
-    // '/configuracion',
-    // '/leads',
-    // '/notificaciones',
-    // '/perfil',
-    // '/peticiones',
-    // '/polizas',
-    // '/reportes',
-    // '/siniestros',
-    // '/tareas',
-    // '/usuarios'
+    '/dashboard',
+    '/clientes',
+    '/leads',
+    '/polizas',
+    '/siniestros',
+    '/tareas',
+    '/actividades',
+    '/notificaciones',
+    '/reportes',
+    '/comisiones',
+    '/peticiones',
+    '/usuarios',
+    '/asociados',
+    '/configuracion',
+    '/perfil',
 ];
 
-// Rutas de autenticación
-const authRoutes = ['/login', '/forgot-password'];
+// Rutas de autenticación (públicas)
+const authRoutes = ['/login', '/forgot-password', '/register'];
+
+// Rutas públicas que no requieren autenticación
+const publicRoutes = ['/login', '/forgot-password', '/register'];
+
+/**
+ * Decodificar token JWT sin validar firma
+ * Solo para extraer información en el middleware
+ */
+function decodeToken(token: string): any {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Verificar si el token ha expirado
+ */
+function isTokenExpired(token: string): boolean {
+    try {
+        const decoded = decodeToken(token);
+        if (!decoded || !decoded.exp) return true;
+
+        const currentTime = Date.now() / 1000;
+        return decoded.exp < currentTime;
+    } catch (error) {
+        return true;
+    }
+}
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Obtener token de las cookies (implementación básica)
+    // Obtener token de las cookies
     const token = request.cookies.get('auth-token')?.value;
 
-    // Si está en una ruta protegida y no tiene token, redirigir a login
-    if (protectedRoutes.some(route => pathname.startsWith(route))) {
+    // Verificar si la ruta es protegida
+    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+
+    // Si está en una ruta protegida
+    if (isProtectedRoute) {
+        // Sin token, redirigir a login
         if (!token) {
-            return NextResponse.redirect(new URL('/login', request.url));
+            const loginUrl = new URL('/login', request.url);
+            loginUrl.searchParams.set('from', pathname);
+            return NextResponse.redirect(loginUrl);
         }
+
+        // Verificar si el token ha expirado
+        if (isTokenExpired(token)) {
+            const loginUrl = new URL('/login', request.url);
+            loginUrl.searchParams.set('from', pathname);
+            loginUrl.searchParams.set('expired', 'true');
+
+            // Limpiar cookie del token expirado
+            const response = NextResponse.redirect(loginUrl);
+            response.cookies.delete('auth-token');
+            return response;
+        }
+
+        // Decodificar token para obtener información del usuario
+        const decoded = decodeToken(token);
+
+        if (!decoded) {
+            const loginUrl = new URL('/login', request.url);
+            return NextResponse.redirect(loginUrl);
+        }
+
+        // Aquí puedes agregar validación de roles específicos por ruta
+        // Por ejemplo:
+        // if (pathname.startsWith('/usuarios') && decoded.id_rol !== 'admin-role-id') {
+        //     return NextResponse.redirect(new URL('/unauthorized', request.url));
+        // }
+
+        // Agregar headers con información del usuario para uso en el cliente
+        const response = NextResponse.next();
+        response.headers.set('x-user-id', decoded.sub);
+        response.headers.set('x-user-role', decoded.id_rol);
+        return response;
     }
 
-    // Si está autenticado y trata de acceder a rutas de auth, redirigir al dashboard
-    if (authRoutes.some(route => pathname.startsWith(route))) {
-        if (token) {
-            return NextResponse.redirect(new URL('/dashboard', request.url));
-        }
+    // Si está en una ruta de autenticación y ya está autenticado
+    if (isAuthRoute && token && !isTokenExpired(token)) {
+        return NextResponse.redirect(new URL('/clientes', request.url));
     }
 
-    // Redirigir root a dashboard si está autenticado, sino a login
+    // Redirigir root según estado de autenticación
     if (pathname === '/') {
-        if (token) {
-            return NextResponse.redirect(new URL('/dashboard', request.url));
+        if (token && !isTokenExpired(token)) {
+            return NextResponse.redirect(new URL('/clientes', request.url));
         } else {
             return NextResponse.redirect(new URL('/login', request.url));
         }
