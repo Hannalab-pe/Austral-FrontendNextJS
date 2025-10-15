@@ -111,3 +111,27 @@ export interface LeadStats {
     conversion_rate: number;
     leads_sin_asignar: number;
 }
+
+// DTOs para EstadoLead
+export interface CreateEstadoLeadDto {
+    nombre: string;
+    descripcion?: string;
+    color_hex: string;
+    orden_proceso: number;
+    es_estado_final: boolean;
+}
+
+export interface UpdateEstadoLeadDto extends Partial<CreateEstadoLeadDto> {
+    esta_activo?: boolean;
+}
+
+// DTOs para FuenteLead
+export interface CreateFuenteLeadDto {
+    nombre: string;
+    descripcion?: string;
+    tipo?: string;
+}
+
+export interface UpdateFuenteLeadDto extends Partial<CreateFuenteLeadDto> {
+    esta_activo?: boolean;
+}
