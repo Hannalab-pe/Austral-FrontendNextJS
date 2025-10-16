@@ -130,6 +130,10 @@ const data = {
           title: "Mi Perfil",
           url: "/perfil",
         },
+        {
+          title: "Compañías",
+          url: "/companias",
+        }
       ],
     },
   ],
