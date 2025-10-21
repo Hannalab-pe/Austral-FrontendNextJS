@@ -20,16 +20,19 @@ interface LeadCardProps {
 }
 
 const PRIORIDAD_CONFIG: Record<Prioridad, { color: string; label: string }> = {
-  ALTA: { color: 'bg-red-100 text-red-800 border-red-200', label: 'Alta' },
-  MEDIA: { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Media' },
-  BAJA: { color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'Baja' },
+  ALTA: { color: "bg-red-100 text-red-800 border-red-200", label: "Alta" },
+  MEDIA: {
+    color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    label: "Media",
+  },
+  BAJA: { color: "bg-blue-100 text-blue-800 border-blue-200", label: "Baja" },
 };
 
 export default function LeadCard({ lead, onClick }: LeadCardProps) {
   const prioridadConfig = PRIORIDAD_CONFIG[lead.prioridad];
 
   return (
-    <Card 
+    <Card
       className="p-4 mb-3 cursor-pointer hover:shadow-md transition-shadow bg-white border border-gray-200"
       onClick={onClick}
     >
@@ -84,7 +87,7 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
         )}
       </div>
 
-      {/* Presupuesto y Puntaje */}
+      {/* Presupuesto, Puntaje y Fechas */}
       <div className="grid grid-cols-2 gap-2 mb-3">
         {lead.presupuesto_aproximado && (
           <div className="flex items-center gap-1 text-xs">
@@ -99,13 +102,13 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
         <div className="flex items-center gap-1 text-xs">
           <div className="flex items-center gap-1">
             <div className="h-2 w-16 bg-gray-200 rounded-full overflow-hidden">
-              <div 
+              <div
                 className={`h-full transition-all ${
-                  lead.puntaje_calificacion >= 80 
-                    ? 'bg-green-500' 
-                    : lead.puntaje_calificacion >= 50 
-                    ? 'bg-yellow-500' 
-                    : 'bg-red-500'
+                  lead.puntaje_calificacion >= 80
+                    ? "bg-green-500"
+                    : lead.puntaje_calificacion >= 50
+                    ? "bg-yellow-500"
+                    : "bg-red-500"
                 }`}
                 style={{ width: `${lead.puntaje_calificacion}%` }}
               />
@@ -142,9 +145,7 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
       {/* Notas */}
       {lead.notas && (
         <div className="mt-2 pt-2 border-t border-gray-100">
-          <p className="text-xs text-gray-500 line-clamp-2">
-            {lead.notas}
-          </p>
+          <p className="text-xs text-gray-500 line-clamp-2">{lead.notas}</p>
         </div>
       )}
     </Card>
