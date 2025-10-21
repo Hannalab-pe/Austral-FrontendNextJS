@@ -6,28 +6,12 @@ import LeadsKanban from '@/components/leads/LeadsKanban';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Filter } from 'lucide-react';
-import { MOCK_LEADS } from '@/lib/constants/mock-leads';
-import { MOCK_ESTADOS_LEAD } from '@/lib/constants/mock-estados-lead';
 import { Lead } from '@/types/lead.interface';
 import { toast } from 'sonner';
 
 export default function LeadsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [leads] = useState(MOCK_LEADS);
-
-  // Filtrar leads por búsqueda
-  const filteredLeads = leads.filter((lead) => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      lead.nombre.toLowerCase().includes(term) ||
-      lead.apellido?.toLowerCase().includes(term) ||
-      lead.email?.toLowerCase().includes(term) ||
-      lead.telefono.includes(term) ||
-      lead.tipo_seguro_interes?.toLowerCase().includes(term)
-    );
-  });
 
   // Manejar movimiento de lead entre columnas
   const handleLeadMove = (leadId: string, newEstadoId: string) => {
@@ -44,15 +28,15 @@ export default function LeadsPage() {
     // router.push(`/leads/${lead.id_lead}`);
   };
 
-  // Estadísticas rápidas
+  // Estadísticas rápidas (por ahora mock, luego se pueden calcular desde el componente)
   const stats = {
-    total: leads.length,
-    activos: leads.filter((l) => l.esta_activo).length,
-    alta_prioridad: leads.filter((l) => l.prioridad === 'ALTA').length,
+    total: 0,
+    activos: 0,
+    alta_prioridad: 0,
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden w-full">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -68,7 +52,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <p className="text-sm text-gray-600">Total de Leads</p>
           <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
@@ -81,7 +65,7 @@ export default function LeadsPage() {
           <p className="text-sm text-gray-600">Alta Prioridad</p>
           <p className="text-2xl font-bold text-red-600">{stats.alta_prioridad}</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Barra de búsqueda y filtros */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -101,14 +85,13 @@ export default function LeadsPage() {
       </div>
 
       {/* Vista Kanban */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white border border-gray-200 rounded-lg w-full">
+        <div className="p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Pipeline de Ventas</h2>
         </div>
-        <div className="p-6">
+        <div className="p-2">
           <LeadsKanban
-            leads={filteredLeads}
-            estados={MOCK_ESTADOS_LEAD}
+            searchTerm={searchTerm}
             onLeadMove={handleLeadMove}
             onLeadClick={handleLeadClick}
           />

@@ -10,21 +10,34 @@ import { LeadsService } from '@/services/leads.service';
 import { EstadosLeadService } from '@/services/estados-lead.service';
 
 interface LeadsKanbanProps {
+  leads?: Lead[];
+  estados?: EstadoLead[];
+  searchTerm?: string;
   onLeadMove?: (leadId: string, newEstadoId: string) => void;
   onLeadClick?: (lead: Lead) => void;
 }
 
 export default function LeadsKanban({ 
+  leads: propLeads,
+  estados: propEstados,
+  searchTerm = '',
   onLeadMove,
   onLeadClick,
 }: LeadsKanbanProps) {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [estados, setEstados] = useState<EstadoLead[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [leads, setLeads] = useState<Lead[]>(propLeads || []);
+  const [estados, setEstados] = useState<EstadoLead[]>(propEstados || []);
+  const [loading, setLoading] = useState(!propLeads || !propEstados);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar datos iniciales
+  // Cargar datos iniciales si no se pasaron como props
   useEffect(() => {
+    if (propLeads && propEstados) {
+      setLeads(propLeads);
+      setEstados(propEstados);
+      setLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       try {
         setLoading(true);
@@ -48,7 +61,20 @@ export default function LeadsKanban({
     };
 
     loadData();
-  }, []);
+  }, [propLeads, propEstados]);
+
+  // Filtrar leads por búsqueda
+  const filteredLeads = useMemo(() => {
+    if (!searchTerm) return leads;
+    const term = searchTerm.toLowerCase();
+    return leads.filter((lead) =>
+      lead.nombre.toLowerCase().includes(term) ||
+      lead.apellido?.toLowerCase().includes(term) ||
+      lead.email?.toLowerCase().includes(term) ||
+      lead.telefono.includes(term) ||
+      lead.tipo_seguro_interes?.toLowerCase().includes(term)
+    );
+  }, [leads, searchTerm]);
 
   // Organizar leads por columnas
   const columns: KanbanColumnType[] = useMemo(() => {
@@ -60,9 +86,9 @@ export default function LeadsKanban({
         titulo: estado.nombre,
         color: estado.color_hex,
         orden: estado.orden_proceso,
-        leads: leads.filter((lead) => lead.id_estado === estado.id_estado),
+        leads: filteredLeads.filter((lead) => lead.id_estado === estado.id_estado),
       }));
-  }, [leads, estados]);
+  }, [filteredLeads, estados]);
 
   // Manejar el drag and drop
   const handleDragEnd = async (result: DropResult) => {
@@ -145,18 +171,20 @@ export default function LeadsKanban({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6">
-        {columns.map((column) => (
-          <div key={column.id} className="flex-shrink-0 w-80">
-            <KanbanColumn
-              columnId={column.id}
-              titulo={column.titulo}
-              color={column.color}
-              leads={column.leads}
-              onLeadClick={onLeadClick}
-            />
-          </div>
-        ))}
+      <div className="overflow-x-auto max-w-[1400px]">
+        <div className="flex gap-4">
+          {columns.map((column) => (
+            <div key={column.id} className="flex-shrink-0 w-80">
+              <KanbanColumn
+                columnId={column.id}
+                titulo={column.titulo}
+                color={column.color}
+                leads={column.leads}
+                onLeadClick={onLeadClick}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </DragDropContext>
   );
