@@ -1,9 +1,18 @@
-import { Lead, Prioridad } from "@/types/lead.interface";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { User, Mail, Phone, DollarSign, Target, Clock } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { Lead, Prioridad } from '@/types/lead.interface';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  DollarSign, 
+  Target,
+  Clock,
+  Calendar,
+  TrendingUp,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface LeadCardProps {
   lead: Lead;
@@ -33,14 +42,22 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
           <h3 className="font-semibold text-gray-900 text-base mb-1">
             {lead.nombre} {lead.apellido}
           </h3>
-          {lead.estado?.nombre && (
-            <span
-              className="inline-block text-xs text-white px-2 py-0.5 rounded-full mr-2"
-              style={{ backgroundColor: lead.estado.color_hex }}
-            >
-              {lead.estado.nombre}
-            </span>
-          )}
+          <div className="flex items-center gap-2 mb-2">
+            {lead.estado && (
+              <div className="flex items-center gap-1">
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: lead.estado.color_hex }}
+                />
+                <span className="text-xs text-gray-600 font-medium">
+                  {lead.estado.nombre}
+                </span>
+              </div>
+            )}
+            <Badge className={`${prioridadConfig.color} text-xs font-medium`}>
+              {prioridadConfig.label}
+            </Badge>
+          </div>
           {lead.tipo_seguro_interes && (
             <p className="text-xs text-gray-600 flex items-center gap-1">
               <Target className="h-3 w-3" />
@@ -48,9 +65,6 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
             </p>
           )}
         </div>
-        <Badge className={`${prioridadConfig.color} text-xs font-medium`}>
-          {prioridadConfig.label}
-        </Badge>
       </div>
 
       {/* Información de Contacto */}
@@ -65,10 +79,10 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
           <Phone className="h-3 w-3 shrink-0" />
           <span>{lead.telefono}</span>
         </div>
-        {lead.fuente?.nombre && (
+        {lead.fuente && (
           <div className="flex items-center gap-2 text-xs text-gray-600">
-            <span className="font-semibold">Fuente:</span>
-            <span>{lead.fuente.nombre}</span>
+            <TrendingUp className="h-3 w-3 shrink-0" />
+            <span className="truncate">{lead.fuente.nombre}</span>
           </div>
         )}
       </div>
@@ -79,7 +93,9 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
           <div className="flex items-center gap-1 text-xs">
             <DollarSign className="h-3 w-3 text-green-600" />
             <span className="font-medium text-gray-700">
-              S/ {Number(lead.presupuesto_aproximado).toLocaleString()}
+              S/ {typeof lead.presupuesto_aproximado === 'string' 
+                ? parseFloat(lead.presupuesto_aproximado).toLocaleString() 
+                : lead.presupuesto_aproximado.toLocaleString()}
             </span>
           </div>
         )}
@@ -104,53 +120,29 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
         </div>
       </div>
 
-      {/* Fechas relevantes */}
-      <div className="grid grid-cols-2 gap-2 mb-3">
+      {/* Fechas y Asignación */}
+      <div className="space-y-1 mb-3">
         {lead.fecha_primer_contacto && (
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <span className="font-semibold">1er contacto:</span>
-            <span>
-              {format(new Date(lead.fecha_primer_contacto), "dd/MM/yyyy")}
-            </span>
-          </div>
-        )}
-        {lead.fecha_ultimo_contacto && (
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <span className="font-semibold">Últ. contacto:</span>
-            <span>
-              {format(new Date(lead.fecha_ultimo_contacto), "dd/MM/yyyy")}
-            </span>
-          </div>
-        )}
-        {lead.fecha_nacimiento && (
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <span className="font-semibold">Nacimiento:</span>
-            <span>{format(new Date(lead.fecha_nacimiento), "dd/MM/yyyy")}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Usuario Asignado y Próximo Seguimiento */}
-      <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-        {lead.asignado_a_usuario && (
-          <div className="flex items-center gap-1">
-            <User className="h-3 w-3" />
-            <span className="truncate">Asignado</span>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Calendar className="h-3 w-3" />
+            <span>Primer contacto: {format(new Date(lead.fecha_primer_contacto), 'dd/MM/yyyy', { locale: es })}</span>
           </div>
         )}
         {lead.proxima_fecha_seguimiento && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
             <Clock className="h-3 w-3" />
-            <span>
-              {format(new Date(lead.proxima_fecha_seguimiento), "dd MMM", {
-                locale: es,
-              })}
-            </span>
+            <span>Seguimiento: {format(new Date(lead.proxima_fecha_seguimiento), 'dd/MM/yyyy HH:mm', { locale: es })}</span>
+          </div>
+        )}
+        {lead.asignado_a_usuario && (
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <User className="h-3 w-3" />
+            <span>Asignado a usuario</span>
           </div>
         )}
       </div>
 
-      {/* Notas (primera línea) */}
+      {/* Notas */}
       {lead.notas && (
         <div className="mt-2 pt-2 border-t border-gray-100">
           <p className="text-xs text-gray-500 line-clamp-2">{lead.notas}</p>

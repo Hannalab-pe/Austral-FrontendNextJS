@@ -1,6 +1,6 @@
 import { EstadoLead } from "@/types/lead.interface";
 
-const API_BASE_URL = "/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_ESTADOS_LEAD_SERVICE_URL || "/api";
 
 /**
  * Servicio para gestionar operaciones relacionadas con estados de lead

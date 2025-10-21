@@ -22,16 +22,10 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-  SidebarTrigger,
 } from "@/components/ui/sidebar"
 
 // This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/images/austral-logo.png",
-  },
   teams: [
     {
       name: "Austral",
@@ -136,13 +130,17 @@ const data = {
           title: "Mi Perfil",
           url: "/perfil",
         },
+        {
+          title: "Compañías",
+          url: "/companias",
+        }
       ],
     },
   ],
   projects: [
     {
-      name: "Soporte",
-      url: "https://wa.me/51925757151", // Cambia este número por el tuyo
+      name: "Soporte x WhatsApp",
+      url: "https://wa.me/925757151", // Cambia este número por el tuyo
       icon: WhatsAppIcon,
     },
   ],
@@ -159,7 +157,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
