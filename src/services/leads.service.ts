@@ -143,7 +143,7 @@ export class LeadsService {
     leadId: string,
     newEstadoId: string
   ): Promise<Lead> {
-    const response = await fetch(`${API_BASE_URL}/leads/${leadId}`, {
+    const response = await fetch(`${API_BASE_URL}/leads/${leadId}/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
