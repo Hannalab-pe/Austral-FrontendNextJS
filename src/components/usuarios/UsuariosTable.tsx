@@ -63,10 +63,10 @@ export default function UsuariosTable({
       },
     },
     {
-      accessorKey: 'idRol.nombre',
+      accessorKey: 'idRol',
       header: 'Rol',
       cell: ({ row }) => {
-        const rol = row.getValue('idRol.nombre') as string | undefined;
+        const rol = row.getValue('idRol') as string | undefined;
         return rol ? (
           <Badge variant="outline" className="font-medium">
             {rol}

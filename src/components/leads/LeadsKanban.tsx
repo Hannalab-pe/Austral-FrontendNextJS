@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { DragDropContext, DropResult } from '@hello-pangea/dnd';
-import { Lead, KanbanColumn as KanbanColumnType } from '@/types/lead.interface';
-import { EstadoLead } from '@/types/lead.interface';
-import KanbanColumn from './KanbanColumn';
-import { toast } from 'sonner';
-import { LeadsService } from '@/services/leads.service';
-import { EstadosLeadService } from '@/services/estados-lead.service';
+import { useState, useEffect, useMemo } from "react";
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
+import { Lead, KanbanColumn as KanbanColumnType } from "@/types/lead.interface";
+import { EstadoLead } from "@/types/lead.interface";
+import KanbanColumn from "./KanbanColumn";
+import { toast } from "sonner";
+import { LeadsService } from "@/services/leads.service";
+import { EstadosLeadService } from "@/services/estados-lead.service";
 
 interface LeadsKanbanProps {
   leads?: Lead[];
@@ -17,10 +17,10 @@ interface LeadsKanbanProps {
   onLeadClick?: (lead: Lead) => void;
 }
 
-export default function LeadsKanban({ 
+export default function LeadsKanban({
   leads: propLeads,
   estados: propEstados,
-  searchTerm = '',
+  searchTerm = "",
   onLeadMove,
   onLeadClick,
 }: LeadsKanbanProps) {
@@ -52,9 +52,9 @@ export default function LeadsKanban({
         setLeads(leadsData);
         setEstados(estadosData);
       } catch (err) {
-        console.error('Error loading kanban data:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar datos');
-        toast.error('Error al cargar los datos del kanban');
+        console.error("Error loading kanban data:", err);
+        setError(err instanceof Error ? err.message : "Error al cargar datos");
+        toast.error("Error al cargar los datos del kanban");
       } finally {
         setLoading(false);
       }
@@ -67,12 +67,13 @@ export default function LeadsKanban({
   const filteredLeads = useMemo(() => {
     if (!searchTerm) return leads;
     const term = searchTerm.toLowerCase();
-    return leads.filter((lead) =>
-      lead.nombre.toLowerCase().includes(term) ||
-      lead.apellido?.toLowerCase().includes(term) ||
-      lead.email?.toLowerCase().includes(term) ||
-      lead.telefono.includes(term) ||
-      lead.tipo_seguro_interes?.toLowerCase().includes(term)
+    return leads.filter(
+      (lead) =>
+        lead.nombre.toLowerCase().includes(term) ||
+        lead.apellido?.toLowerCase().includes(term) ||
+        lead.email?.toLowerCase().includes(term) ||
+        lead.telefono.includes(term) ||
+        lead.tipo_seguro_interes?.toLowerCase().includes(term)
     );
   }, [leads, searchTerm]);
 
@@ -86,7 +87,9 @@ export default function LeadsKanban({
         titulo: estado.nombre,
         color: estado.color_hex,
         orden: estado.orden_proceso,
-        leads: filteredLeads.filter((lead) => lead.id_estado === estado.id_estado),
+        leads: filteredLeads.filter(
+          (lead) => lead.id_estado === estado.id_estado
+        ),
       }));
   }, [filteredLeads, estados]);
 
@@ -122,23 +125,19 @@ export default function LeadsKanban({
       await LeadsService.updateLeadStatus(draggableId, destination.droppableId);
 
       // Obtener el nombre del nuevo estado
-      const nuevoEstado = estados.find((e) => e.id_estado === destination.droppableId);
-      
-      // Mostrar notificación de éxito
-      toast.success(
-        `Lead movido a "${nuevoEstado?.nombre || 'nuevo estado'}"`,
-        {
-          description: `${movedLead.nombre} ${movedLead.apellido || ''}`,
-        }
+      const nuevoEstado = estados.find(
+        (e) => e.id_estado === destination.droppableId
       );
+
+      // Mostrar notificación de éxito
 
       // Llamar al callback si existe
       onLeadMove?.(draggableId, destination.droppableId);
     } catch (err) {
       // Revertir el cambio si falla
       setLeads(leads);
-      console.error('Error updating lead status:', err);
-      toast.error('Error al actualizar el estado del lead');
+      console.error("Error updating lead status:", err);
+      toast.error("Error al actualizar el estado del lead");
     }
   };
 
