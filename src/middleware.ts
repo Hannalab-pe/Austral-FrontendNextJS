@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 
 // Rutas que requieren autenticación
 const protectedRoutes = [
-    '/dashboard',
     '/clientes',
     '/leads',
     '/polizas',
@@ -18,13 +17,14 @@ const protectedRoutes = [
     '/asociados',
     '/configuracion',
     '/perfil',
+    '/companias',
 ];
 
 // Rutas de autenticación (públicas)
-const authRoutes = ['/login', '/forgot-password', '/register'];
+const authRoutes = ['/auth/login', '/auth/forgot-password', '/auth/register'];
 
 // Rutas públicas que no requieren autenticación
-const publicRoutes = ['/login', '/forgot-password', '/register'];
+const publicRoutes = ['/auth/login', '/auth/forgot-password', '/auth/register'];
 
 /**
  * Decodificar token JWT sin validar firma
@@ -76,14 +76,14 @@ export function middleware(request: NextRequest) {
     if (isProtectedRoute) {
         // Sin token, redirigir a login
         if (!token) {
-            const loginUrl = new URL('/login', request.url);
+            const loginUrl = new URL('/auth/login', request.url);
             loginUrl.searchParams.set('from', pathname);
             return NextResponse.redirect(loginUrl);
         }
 
         // Verificar si el token ha expirado
         if (isTokenExpired(token)) {
-            const loginUrl = new URL('/login', request.url);
+            const loginUrl = new URL('/auth/login', request.url);
             loginUrl.searchParams.set('from', pathname);
             loginUrl.searchParams.set('expired', 'true');
 
@@ -97,7 +97,7 @@ export function middleware(request: NextRequest) {
         const decoded = decodeToken(token);
 
         if (!decoded) {
-            const loginUrl = new URL('/login', request.url);
+            const loginUrl = new URL('/auth/login', request.url);
             return NextResponse.redirect(loginUrl);
         }
 
@@ -124,7 +124,7 @@ export function middleware(request: NextRequest) {
         if (token && !isTokenExpired(token)) {
             return NextResponse.redirect(new URL('/clientes', request.url));
         } else {
-            return NextResponse.redirect(new URL('/login', request.url));
+            return NextResponse.redirect(new URL('/auth/login', request.url));
         }
     }
 

@@ -62,7 +62,7 @@ export function useCreateRol() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: Omit<Rol, 'id_rol' | 'fecha_creacion'>) => {
+        mutationFn: (data: Omit<Rol, 'idRol' | 'fechaCreacion'>) => {
             // TODO: Implementar cuando exista el endpoint en rolesService
             throw new Error('Endpoint de crear rol no implementado');
         },

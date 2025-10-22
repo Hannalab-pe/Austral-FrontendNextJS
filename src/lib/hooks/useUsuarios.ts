@@ -74,16 +74,16 @@ export function useUsuario(id: string, enabled: boolean = true) {
 
 /**
  * Hook para obtener usuarios por rol
- * 
- * @param id_rol - ID del rol
+ *
+ * @param idRol - ID del rol
  * @param enabled - Si la query debe ejecutarse
  * @returns Query con usuarios del rol
  */
-export function useUsuariosByRole(id_rol: string, enabled: boolean = true) {
+export function useUsuariosByRole(idRol: string, enabled: boolean = true) {
     return useQuery({
-        queryKey: usuariosKeys.byRole(id_rol),
-        queryFn: () => usuariosService.getByRole(id_rol),
-        enabled: enabled && !!id_rol,
+        queryKey: usuariosKeys.byRole(idRol),
+        queryFn: () => usuariosService.getByRole(idRol),
+        enabled: enabled && !!idRol,
     });
 }
 
@@ -155,8 +155,8 @@ export function useActivateUsuario() {
             if (previousUsuario) {
                 queryClient.setQueryData<Usuario>(usuariosKeys.detail(id), {
                     ...previousUsuario,
-                    esta_activo: true,
-                    cuenta_bloqueada: false,
+                    estaActivo: true,
+                    cuentaBloqueada: false,
                 });
             }
 
@@ -197,7 +197,7 @@ export function useDeactivateUsuario() {
             if (previousUsuario) {
                 queryClient.setQueryData<Usuario>(usuariosKeys.detail(id), {
                     ...previousUsuario,
-                    esta_activo: false,
+                    estaActivo: false,
                 });
             }
 
@@ -235,7 +235,7 @@ export function useBlockUsuario() {
             if (previousUsuario) {
                 queryClient.setQueryData<Usuario>(usuariosKeys.detail(id), {
                     ...previousUsuario,
-                    cuenta_bloqueada: true,
+                    cuentaBloqueada: true,
                 });
             }
 
@@ -273,8 +273,8 @@ export function useUnblockUsuario() {
             if (previousUsuario) {
                 queryClient.setQueryData<Usuario>(usuariosKeys.detail(id), {
                     ...previousUsuario,
-                    cuenta_bloqueada: false,
-                    intentos_fallidos: 0,
+                    cuentaBloqueada: false,
+                    intentosFallidos: 0,
                 });
             }
 

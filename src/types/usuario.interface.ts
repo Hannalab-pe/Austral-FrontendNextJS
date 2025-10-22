@@ -1,52 +1,52 @@
 export interface Usuario {
-    id_usuario: string;
-    nombre_usuario: string;
+    idUsuario: string;
+    nombreUsuario: string;
     email: string;
     nombre: string;
     apellido: string;
     telefono?: string;
-    documento_identidad?: string;
-    id_asociado?: string;
-    supervisor_id?: string;
-    esta_activo: boolean;
-    ultimo_acceso?: Date | string;
-    intentos_fallidos: number;
-    cuenta_bloqueada: boolean;
-    id_rol: string;
-    fecha_creacion: Date | string;
+    documentoIdentidad?: string;
+    idAsociado?: string;
+    supervisorId?: string;
+    estaActivo: boolean;
+    ultimoAcceso?: Date | string;
+    intentosFallidos: number;
+    cuentaBloqueada: boolean;
+    idRol: string;
+    fechaCreacion: Date | string;
     // Campos adicionales para mostrar en UI
-    rol_nombre?: string;
-    nombre_completo?: string;
+    rolNombre?: string;
+    nombreCompleto?: string;
 }
 
 export interface CreateUsuarioDto {
-    nombre_usuario: string;
+    nombreUsuario: string;
     email: string;
     contrasena: string;
     nombre: string;
     apellido: string;
     telefono?: string;
-    documento_identidad?: string;
-    id_asociado?: string;
-    supervisor_id?: string;
-    id_rol: string;
+    documentoIdentidad?: string;
+    idAsociado?: string;
+    supervisorId?: string;
+    idRol: string;
 }
 
 export interface UpdateUsuarioDto {
-    nombre_usuario?: string;
+    nombreUsuario?: string;
     email?: string;
     nombre?: string;
     apellido?: string;
     telefono?: string;
-    documento_identidad?: string;
-    id_asociado?: string;
-    supervisor_id?: string;
-    id_rol?: string;
+    documentoIdentidad?: string;
+    idAsociado?: string;
+    supervisorId?: string;
+    idRol?: string;
 }
 
 export interface UsuarioFiltros {
-    esta_activo?: boolean;
-    id_rol?: string;
+    estaActivo?: boolean;
+    idRol?: string;
     search?: string;
 }
 
@@ -66,10 +66,19 @@ export interface UsuarioStats {
 }
 
 export interface Rol {
-    id_rol: string;
+    idRol: string;
     nombre: string;
     descripcion?: string;
-    nivel_acceso: number;
-    esta_activo: boolean;
-    fecha_creacion: Date | string;
+    nivelAcceso: number;
+    estaActivo: boolean;
+    fechaCreacion: Date | string;
+}
+
+export interface Vista {
+    idVista: string;
+    nombre: string;
+    descripcion?: string;
+    ruta: string;
+    estaActiva: boolean;
+    fechaCreacion: Date | string;
 }

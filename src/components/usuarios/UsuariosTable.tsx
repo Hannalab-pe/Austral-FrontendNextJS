@@ -31,12 +31,12 @@ export default function UsuariosTable({
 }: UsuariosTableProps) {
   const columns: ColumnDef<Usuario>[] = [
     {
-      accessorKey: 'nombre_usuario',
+      accessorKey: 'nombreUsuario',
       header: 'Usuario',
       cell: ({ row }) => (
         <div className="font-medium">
-          <div className="text-sm font-semibold">{row.getValue('nombre_usuario')}</div>
-          <div className="text-xs text-gray-500">{row.original.documento_identidad || 'Sin documento'}</div>
+          <div className="text-sm font-semibold">{row.getValue('nombreUsuario')}</div>
+          <div className="text-xs text-gray-500">{row.original.documentoIdentidad || 'Sin documento'}</div>
         </div>
       ),
     },
@@ -63,10 +63,10 @@ export default function UsuariosTable({
       },
     },
     {
-      accessorKey: 'id_rol',
+      accessorKey: 'idRol.nombre',
       header: 'Rol',
       cell: ({ row }) => {
-        const rol = row.getValue('id_rol') as string | undefined;
+        const rol = row.getValue('idRol.nombre') as string | undefined;
         return rol ? (
           <Badge variant="outline" className="font-medium">
             {rol}
@@ -77,11 +77,11 @@ export default function UsuariosTable({
       },
     },
     {
-      accessorKey: 'esta_activo',
+      accessorKey: 'estaActivo',
       header: 'Estado',
       cell: ({ row }) => {
-        const activo = row.getValue('esta_activo') as boolean;
-        const bloqueado = row.original.cuenta_bloqueada;
+        const activo = row.getValue('estaActivo') as boolean;
+        const bloqueado = row.original.cuentaBloqueada;
 
         if (bloqueado) {
           return (
@@ -99,10 +99,10 @@ export default function UsuariosTable({
       },
     },
     {
-      accessorKey: 'ultimo_acceso',
+      accessorKey: 'ultimoAcceso',
       header: 'Último Acceso',
       cell: ({ row }) => {
-        const ultimoAcceso = row.getValue('ultimo_acceso') as string | Date | undefined;
+        const ultimoAcceso = row.getValue('ultimoAcceso') as string | Date | undefined;
         if (!ultimoAcceso) {
           return <span className="text-xs text-gray-400">Nunca</span>;
         }
@@ -143,13 +143,13 @@ export default function UsuariosTable({
         }
 
         // Acciones de activar/desactivar
-        if (usuario.esta_activo && onDeactivate) {
+        if (usuario.estaActivo && onDeactivate) {
           customActions.push({
             label: 'Desactivar',
             icon: <span className="mr-2">⏸️</span>,
             onClick: onDeactivate,
           });
-        } else if (!usuario.esta_activo && onActivate) {
+        } else if (!usuario.estaActivo && onActivate) {
           customActions.push({
             label: 'Activar',
             icon: <span className="mr-2">▶️</span>,
@@ -158,13 +158,13 @@ export default function UsuariosTable({
         }
 
         // Acciones de bloquear/desbloquear
-        if (usuario.cuenta_bloqueada && onUnblock) {
+        if (usuario.cuentaBloqueada && onUnblock) {
           customActions.push({
             label: 'Desbloquear',
             icon: <span className="mr-2">🔓</span>,
             onClick: onUnblock,
           });
-        } else if (!usuario.cuenta_bloqueada && onBlock) {
+        } else if (!usuario.cuentaBloqueada && onBlock) {
           customActions.push({
             label: 'Bloquear',
             icon: <span className="mr-2">🔒</span>,

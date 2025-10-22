@@ -31,9 +31,9 @@ export default function NuevoUsuarioClient({ rolesInitialData }: NuevoUsuarioCli
       const cleanedData = {
         ...data,
         telefono: data.telefono || undefined,
-        documento_identidad: data.documento_identidad || undefined,
-        id_asociado: data.id_asociado || undefined,
-        supervisor_id: data.supervisor_id || undefined,
+        documentoIdentidad: data.documentoIdentidad || undefined,
+        idAsociado: data.idAsociado || undefined,
+        supervisorId: data.supervisorId || undefined,
       };
 
       // Llamar al endpoint de registro

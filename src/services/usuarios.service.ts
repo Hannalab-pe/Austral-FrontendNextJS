@@ -17,11 +17,11 @@ export const usuariosService = {
         try {
             const params = new URLSearchParams();
 
-            if (filtros?.esta_activo !== undefined) {
-                params.append('esta_activo', String(filtros.esta_activo));
+            if (filtros?.estaActivo !== undefined) {
+                params.append('esta_activo', String(filtros.estaActivo));
             }
-            if (filtros?.id_rol) {
-                params.append('id_rol', filtros.id_rol);
+            if (filtros?.idRol) {
+                params.append('id_rol', filtros.idRol);
             }
             if (filtros?.search) {
                 params.append('search', filtros.search);
@@ -49,11 +49,11 @@ export const usuariosService = {
             params.append('page', String(page));
             params.append('limit', String(limit));
 
-            if (filtros?.esta_activo !== undefined) {
-                params.append('esta_activo', String(filtros.esta_activo));
+            if (filtros?.estaActivo !== undefined) {
+                params.append('esta_activo', String(filtros.estaActivo));
             }
-            if (filtros?.id_rol) {
-                params.append('id_rol', filtros.id_rol);
+            if (filtros?.idRol) {
+                params.append('id_rol', filtros.idRol);
             }
             if (filtros?.search) {
                 params.append('search', filtros.search);
@@ -143,9 +143,9 @@ export const usuariosService = {
     /**
      * Obtiene usuarios por rol
      */
-    async getByRole(id_rol: string): Promise<Usuario[]> {
+    async getByRole(idRol: string): Promise<Usuario[]> {
         try {
-            const response = await apiClient.get<Usuario[]>(`/usuarios/rol/${id_rol}`);
+            const response = await apiClient.get<Usuario[]>(`/usuarios/rol/${idRol}`);
             return response.data;
         } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Error al obtener usuarios por rol');

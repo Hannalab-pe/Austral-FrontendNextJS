@@ -41,6 +41,18 @@ export const rolesKeys = {
 };
 
 // ============================================================================
+// VISTAS
+// ============================================================================
+export const vistasKeys = {
+    all: ['vistas'] as const,
+    lists: () => [...vistasKeys.all, 'list'] as const,
+    list: () => [...vistasKeys.lists()] as const,
+    details: () => [...vistasKeys.all, 'detail'] as const,
+    detail: (id: string) => [...vistasKeys.details(), id] as const,
+    byRol: (idRol: string) => [...vistasKeys.all, 'by-rol', idRol] as const,
+};
+
+// ============================================================================
 // CLIENTES (para uso futuro)
 // ============================================================================
 export const clientesKeys = {

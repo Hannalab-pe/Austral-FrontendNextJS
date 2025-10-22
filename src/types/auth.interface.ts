@@ -10,40 +10,40 @@ export interface LoginDto {
 }
 
 export interface RegisterDto {
-    nombre_usuario: string;
+    nombreUsuario: string;
     email: string;
     contrasena: string;
     nombre: string;
     apellido: string;
     telefono?: string;
-    documento_identidad?: string;
-    id_rol: string;
+    documentoIdentidad?: string;
+    idRol: string;
 }
 
 export interface ChangePasswordDto {
-    contrasena_actual: string;
-    contrasena_nueva: string;
+    contrasenaActual: string;
+    contrasenaNueva: string;
 }
 
 // Usuario (info básica)
 export interface User {
-    id_usuario: string;
-    nombre_usuario: string;
+    idUsuario: string;
+    nombreUsuario: string;
     email: string;
     nombre: string;
     apellido: string;
-    id_rol: string;
+    idRol: string;
 }
 
 // Usuario completo (con más detalles)
 export interface UserProfile extends User {
     telefono?: string;
-    documento_identidad?: string;
-    id_asociado?: string;
-    supervisor_id?: string;
-    esta_activo: boolean;
-    ultimo_acceso?: string;
-    fecha_creacion: string;
+    documentoIdentidad?: string;
+    idAsociado?: string;
+    supervisorId?: string;
+    estaActivo: boolean;
+    ultimoAcceso?: string;
+    fechaCreacion: string;
 }
 
 // Respuesta de autenticación
@@ -54,11 +54,11 @@ export interface AuthResponse {
 
 // Payload del JWT decodificado
 export interface JwtPayload {
-    sub: string; // id_usuario
+    sub: string; // idUsuario
     email: string;
-    nombre_usuario: string;
-    nombre_completo: string;
-    id_rol: string;
+    nombreUsuario: string;
+    nombreCompleto: string;
+    idRol: string;
     iat?: number; // issued at
     exp?: number; // expiration
 }
