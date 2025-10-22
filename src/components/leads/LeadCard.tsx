@@ -1,22 +1,29 @@
-import { Lead, Prioridad } from '@/types/lead.interface';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  DollarSign, 
+import { Lead, Prioridad } from "@/types/lead.interface";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  User,
+  Mail,
+  Phone,
+  DollarSign,
   Target,
   Clock,
   Calendar,
   TrendingUp,
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+  UserPlus,
+} from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useLeadStore } from "@/store/leadStore";
 
 interface LeadCardProps {
   lead: Lead;
   onClick?: () => void;
+  onContact?: (lead: Lead) => void;
+  onAssign?: (lead: Lead) => void;
 }
 
 const PRIORIDAD_CONFIG: Record<Prioridad, { color: string; label: string }> = {
@@ -28,7 +35,16 @@ const PRIORIDAD_CONFIG: Record<Prioridad, { color: string; label: string }> = {
   BAJA: { color: "bg-blue-100 text-blue-800 border-blue-200", label: "Baja" },
 };
 
-export default function LeadCard({ lead, onClick }: LeadCardProps) {
+export default function LeadCard({
+  lead,
+  onClick,
+  onContact,
+  onAssign,
+}: LeadCardProps) {
+  const setSelectedLeadForQuote = useLeadStore(
+    (state) => state.setSelectedLeadForQuote
+  );
+  const router = useRouter();
   const prioridadConfig = PRIORIDAD_CONFIG[lead.prioridad];
 
   return (
@@ -45,8 +61,8 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
           <div className="flex items-center gap-2 mb-2">
             {lead.estado && (
               <div className="flex items-center gap-1">
-                <div 
-                  className="w-3 h-3 rounded-full" 
+                <div
+                  className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: lead.estado.color_hex }}
                 />
                 <span className="text-xs text-gray-600 font-medium">
@@ -93,8 +109,9 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
           <div className="flex items-center gap-1 text-xs">
             <DollarSign className="h-3 w-3 text-green-600" />
             <span className="font-medium text-gray-700">
-              S/ {typeof lead.presupuesto_aproximado === 'string' 
-                ? parseFloat(lead.presupuesto_aproximado).toLocaleString() 
+              S/{" "}
+              {typeof lead.presupuesto_aproximado === "string"
+                ? parseFloat(lead.presupuesto_aproximado).toLocaleString()
                 : lead.presupuesto_aproximado.toLocaleString()}
             </span>
           </div>
@@ -125,13 +142,25 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
         {lead.fecha_primer_contacto && (
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <Calendar className="h-3 w-3" />
-            <span>Primer contacto: {format(new Date(lead.fecha_primer_contacto), 'dd/MM/yyyy', { locale: es })}</span>
+            <span>
+              Primer contacto:{" "}
+              {format(new Date(lead.fecha_primer_contacto), "dd/MM/yyyy", {
+                locale: es,
+              })}
+            </span>
           </div>
         )}
         {lead.proxima_fecha_seguimiento && (
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <Clock className="h-3 w-3" />
-            <span>Seguimiento: {format(new Date(lead.proxima_fecha_seguimiento), 'dd/MM/yyyy HH:mm', { locale: es })}</span>
+            <span>
+              Seguimiento:{" "}
+              {format(
+                new Date(lead.proxima_fecha_seguimiento),
+                "dd/MM/yyyy HH:mm",
+                { locale: es }
+              )}
+            </span>
           </div>
         )}
         {lead.asignado_a_usuario && (
@@ -148,6 +177,38 @@ export default function LeadCard({ lead, onClick }: LeadCardProps) {
           <p className="text-xs text-gray-500 line-clamp-2">{lead.notas}</p>
         </div>
       )}
+
+      {/* Botones de acción */}
+      <div className="flex gap-2 mt-2">
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log("LeadCard: Cotizar button clicked for lead:", lead);
+            setSelectedLeadForQuote(lead);
+            console.log(
+              "LeadCard: Lead set in store, navigating to /cotizaciones/cotizar"
+            );
+            router.push("/cotizaciones/cotizar");
+            onContact?.(lead);
+          }}
+          variant="outline"
+          size="sm"
+          className="flex items-center"
+        >
+          <Phone className="h-4 w-4 mr-1" /> Cotizar
+        </Button>
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            onAssign?.(lead);
+          }}
+          variant="outline"
+          size="sm"
+          className="flex items-center"
+        >
+          <UserPlus className="h-4 w-4 mr-1" /> Asignar
+        </Button>
+      </div>
     </Card>
   );
 }
