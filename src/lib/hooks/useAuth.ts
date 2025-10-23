@@ -29,12 +29,12 @@ export const useAuth = () => {
 
     // Función helper para verificar si el usuario tiene un rol específico
     const hasRole = (roleId: string): boolean => {
-        return user?.id_rol === roleId;
+        return user?.idRol === roleId;
     };
 
     // Función helper para verificar si el usuario tiene alguno de los roles
     const hasAnyRole = (roleIds: string[]): boolean => {
-        return user ? roleIds.includes(user.id_rol) : false;
+        return user ? roleIds.includes(user.idRol) : false;
     };
 
     // Función helper para redirigir si no está autenticado

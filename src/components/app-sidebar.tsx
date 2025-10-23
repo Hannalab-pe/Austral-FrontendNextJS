@@ -1,28 +1,24 @@
-"use client";
+"use client"
 
-import * as React from "react";
+import * as React from "react"
 import {
-  LayoutDashboard,
   Shield,
-  ClipboardList,
-  BarChart3,
-  Settings,
-  DollarSign,
-} from "lucide-react";
+} from "lucide-react"
 
-import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon"
 
-import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { NavMain } from "@/components/nav-main"
+import { NavProjects } from "@/components/nav-projects"
+import { NavUser } from "@/components/nav-user"
+import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"
+import { useNavigationPermissions } from "@/lib/hooks/usePermissions"
 
 // This is sample data.
 const data = {
@@ -33,114 +29,6 @@ const data = {
       plan: "Enterprise",
     },
   ],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-      isActive: true,
-      items: [],
-    },
-    {
-      title: "Ventas",
-      url: "#",
-      icon: DollarSign,
-      items: [
-        {
-          title: "Leads",
-          url: "/leads",
-        },
-        {
-          title: "Clientes",
-          url: "/clientes",
-        },
-        {
-          title: "Asociados",
-          url: "/asociados",
-        },
-        {
-          title: "Cotizaciones",
-          url: "/cotizaciones",
-        },
-      ],
-    },
-    {
-      title: "Pólizas",
-      url: "#",
-      icon: Shield,
-      items: [
-        {
-          title: "Ver Pólizas",
-          url: "/polizas",
-        },
-        {
-          title: "Siniestros",
-          url: "/siniestros",
-        },
-        {
-          title: "Peticiones",
-          url: "/peticiones",
-        },
-      ],
-    },
-    {
-      title: "Gestión",
-      url: "#",
-      icon: ClipboardList,
-      items: [
-        {
-          title: "Actividades",
-          url: "/actividades",
-        },
-        {
-          title: "Tareas",
-          url: "/tareas",
-        },
-        {
-          title: "Notificaciones",
-          url: "/notificaciones",
-        },
-      ],
-    },
-    {
-      title: "Finanzas",
-      url: "#",
-      icon: BarChart3,
-      items: [
-        {
-          title: "Comisiones",
-          url: "/comisiones",
-        },
-        {
-          title: "Reportes",
-          url: "/reportes",
-        },
-      ],
-    },
-    {
-      title: "Configuración",
-      url: "#",
-      icon: Settings,
-      items: [
-        {
-          title: "General",
-          url: "/configuracion",
-        },
-        {
-          title: "Usuarios",
-          url: "/usuarios",
-        },
-        {
-          title: "Mi Perfil",
-          url: "/perfil",
-        },
-        {
-          title: "Compañías",
-          url: "/companias",
-        },
-      ],
-    },
-  ],
   projects: [
     {
       name: "Soporte x WhatsApp",
@@ -148,16 +36,58 @@ const data = {
       icon: WhatsAppIcon,
     },
   ],
-};
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { filteredNavigation, loading, error } = useNavigationPermissions();
+
+  // Mostrar loading state mientras se cargan los permisos
+  if (loading) {
+    return (
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>
+          <TeamSwitcher teams={data.teams} />
+        </SidebarHeader>
+        <SidebarContent>
+          <div className="flex items-center justify-center p-4">
+            <div className="text-sm text-muted-foreground">Cargando navegación...</div>
+          </div>
+        </SidebarContent>
+        <SidebarFooter>
+          <NavUser />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    );
+  }
+
+  // Mostrar error si ocurre
+  if (error) {
+    return (
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>
+          <TeamSwitcher teams={data.teams} />
+        </SidebarHeader>
+        <SidebarContent>
+          <div className="flex items-center justify-center p-4">
+            <div className="text-sm text-red-500">Error cargando navegación</div>
+          </div>
+        </SidebarContent>
+        <SidebarFooter>
+          <NavUser />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    );
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavigation} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
@@ -165,5 +95,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  );
+  )
 }

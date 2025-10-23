@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const usuarioSchema = z.object({
-    nombre_usuario: z
+    nombreUsuario: z
         .string()
         .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
         .max(50, 'Máximo 50 caracteres')
@@ -32,30 +32,30 @@ export const usuarioSchema = z.object({
         .max(20, 'Máximo 20 caracteres')
         .optional()
         .or(z.literal('')),
-    documento_identidad: z
+    documentoIdentidad: z
         .string()
         .min(8, 'Documento inválido')
         .max(20, 'Máximo 20 caracteres')
         .optional()
         .or(z.literal('')),
-    id_asociado: z
+    idAsociado: z
         .string()
         .uuid('ID de asociado inválido')
         .optional()
         .or(z.literal('')),
-    supervisor_id: z
+    supervisorId: z
         .string()
         .uuid('ID de supervisor inválido')
         .optional()
         .or(z.literal('')),
-    id_rol: z
+    idRol: z
         .string()
         .uuid('Debe seleccionar un rol')
         .min(1, 'El rol es requerido'),
 });
 
 export const updateUsuarioSchema = z.object({
-    nombre_usuario: z
+    nombreUsuario: z
         .string()
         .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
         .max(50, 'Máximo 50 caracteres')
@@ -82,23 +82,23 @@ export const updateUsuarioSchema = z.object({
         .max(20, 'Máximo 20 caracteres')
         .optional()
         .or(z.literal('')),
-    documento_identidad: z
+    documentoIdentidad: z
         .string()
         .min(8, 'Documento inválido')
         .max(20, 'Máximo 20 caracteres')
         .optional()
         .or(z.literal('')),
-    id_asociado: z
+    idAsociado: z
         .string()
         .uuid('ID de asociado inválido')
         .optional()
         .or(z.literal('')),
-    supervisor_id: z
+    supervisorId: z
         .string()
         .uuid('ID de supervisor inválido')
         .optional()
         .or(z.literal('')),
-    id_rol: z
+    idRol: z
         .string()
         .uuid('Debe seleccionar un rol')
         .optional(),

@@ -53,7 +53,7 @@ export function NavUser() {
 
   // Obtener iniciales para el avatar fallback
   const initials = `${user.nombre?.[0] || ""}${user.apellido?.[0] || ""}`.toUpperCase() || "U"
-  const fullName = `${user.nombre || ""} ${user.apellido || ""}`.trim() || user.nombre_usuario
+  const fullName = `${user.nombre || ""} ${user.apellido || ""}`.trim() || user.nombreUsuario
 
   return (
     <SidebarMenu>

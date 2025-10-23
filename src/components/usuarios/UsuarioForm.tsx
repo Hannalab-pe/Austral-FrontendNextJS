@@ -57,14 +57,14 @@ export default function UsuarioForm({
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="nombre_usuario">Nombre de Usuario *</Label>
+            <Label htmlFor="nombreUsuario">Nombre de Usuario *</Label>
             <Input
-              id="nombre_usuario"
+              id="nombreUsuario"
               placeholder="usuario123"
-              {...register('nombre_usuario')}
+              {...register('nombreUsuario')}
             />
-            {errors.nombre_usuario && (
-              <p className="text-sm text-red-600">{errors.nombre_usuario.message}</p>
+            {errors.nombreUsuario && (
+              <p className="text-sm text-red-600">{errors.nombreUsuario.message}</p>
             )}
           </div>
 
@@ -108,9 +108,9 @@ export default function UsuarioForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="id_rol">Rol *</Label>
+            <Label htmlFor="idRol">Rol *</Label>
             <Controller
-              name="id_rol"
+              name="idRol"
               control={control}
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
@@ -124,9 +124,9 @@ export default function UsuarioForm({
                       </div>
                     ) : (
                       roles
-                        .filter((rol) => rol.esta_activo)
+                        .filter((rol) => rol.estaActivo)
                         .map((rol) => (
-                          <SelectItem key={rol.id_rol} value={rol.id_rol}>
+                          <SelectItem key={rol.idRol} value={rol.idRol}>
                             {rol.nombre}
                             {rol.descripcion && (
                               <span className="text-xs text-gray-500 ml-2">
@@ -140,8 +140,8 @@ export default function UsuarioForm({
                 </Select>
               )}
             />
-            {errors.id_rol && (
-              <p className="text-sm text-red-600">{errors.id_rol.message}</p>
+            {errors.idRol && (
+              <p className="text-sm text-red-600">{errors.idRol.message}</p>
             )}
           </div>
         </CardContent>
@@ -177,14 +177,14 @@ export default function UsuarioForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="documento_identidad">Documento de Identidad</Label>
+            <Label htmlFor="documentoIdentidad">Documento de Identidad</Label>
             <Input
-              id="documento_identidad"
+              id="documentoIdentidad"
               placeholder="12345678"
-              {...register('documento_identidad')}
+              {...register('documentoIdentidad')}
             />
-            {errors.documento_identidad && (
-              <p className="text-sm text-red-600">{errors.documento_identidad.message}</p>
+            {errors.documentoIdentidad && (
+              <p className="text-sm text-red-600">{errors.documentoIdentidad.message}</p>
             )}
           </div>
 
@@ -210,12 +210,12 @@ export default function UsuarioForm({
           <div className="space-y-2">
             <Label htmlFor="id_asociado">ID Asociado</Label>
             <Input
-              id="id_asociado"
+              id="idAsociado"
               placeholder="UUID del asociado"
-              {...register('id_asociado')}
+              {...register('idAsociado')}
             />
-            {errors.id_asociado && (
-              <p className="text-sm text-red-600">{errors.id_asociado.message}</p>
+            {errors.idAsociado && (
+              <p className="text-sm text-red-600">{errors.idAsociado.message}</p>
             )}
             <p className="text-xs text-gray-500">
               Formato UUID (ej: 550e8400-e29b-41d4-a716-446655440000)
@@ -225,12 +225,12 @@ export default function UsuarioForm({
           <div className="space-y-2">
             <Label htmlFor="supervisor_id">ID Supervisor</Label>
             <Input
-              id="supervisor_id"
+              id="supervisorId"
               placeholder="UUID del supervisor"
-              {...register('supervisor_id')}
+              {...register('supervisorId')}
             />
-            {errors.supervisor_id && (
-              <p className="text-sm text-red-600">{errors.supervisor_id.message}</p>
+            {errors.supervisorId && (
+              <p className="text-sm text-red-600">{errors.supervisorId.message}</p>
             )}
             <p className="text-xs text-gray-500">
               Formato UUID (ej: 550e8400-e29b-41d4-a716-446655440000)

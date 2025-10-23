@@ -168,12 +168,12 @@ export const useAuthStore = create<AuthStore>()(
                         const userProfile = await authService.getUserProfile();
                         set({
                             user: {
-                                id_usuario: userProfile.id_usuario,
-                                nombre_usuario: userProfile.nombre_usuario,
+                                idUsuario: userProfile.idUsuario,
+                                nombreUsuario: userProfile.nombreUsuario,
                                 email: userProfile.email,
                                 nombre: userProfile.nombre,
                                 apellido: userProfile.apellido,
-                                id_rol: userProfile.id_rol,
+                                idRol: userProfile.idRol,
                             },
                             token,
                             isAuthenticated: true,
@@ -197,12 +197,12 @@ export const useAuthStore = create<AuthStore>()(
                     // Actualizar usuario en el estado
                     set({
                         user: {
-                            id_usuario: profile.id_usuario,
-                            nombre_usuario: profile.nombre_usuario,
+                            idUsuario: profile.idUsuario,
+                            nombreUsuario: profile.nombreUsuario,
                             email: profile.email,
                             nombre: profile.nombre,
                             apellido: profile.apellido,
-                            id_rol: profile.id_rol,
+                            idRol: profile.idRol,
                         },
                     });
 
