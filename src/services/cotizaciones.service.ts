@@ -2,6 +2,7 @@ import {
   DetalleSeguro,
   DetalleSeguroVehicular,
   DetalleSeguroSalud,
+  DetalleSeguroSCTR,
 } from "@/types/api.types";
 import {
   getDetalleSeguroByLeadId,
@@ -17,10 +18,10 @@ export class CotizacionesService {
   /**
    * Obtiene detalles de seguro para SCTR basado en el lead
    */
-  static async getDetalleSCTR(leadId: string): Promise<DetalleSeguroVehicular> {
+  static async getDetalleSCTR(leadId: string): Promise<DetalleSeguroSCTR> {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/detalle-seguro-sctr/lead/${leadId}`,
+        `${API_BASE_URL}/detalle-seguro-sctr/${leadId}`,
         {
           method: "GET",
           headers: {
@@ -39,26 +40,21 @@ export class CotizacionesService {
       console.log("API not available, using mock data for SCTR");
       // Fallback to mock data
       const mockData = getDetalleSeguroByLeadId(leadId);
-      if (mockData && "marca_auto" in mockData)
-        return mockData as DetalleSeguroVehicular;
+      if (mockData && "razon_social" in mockData)
+        return mockData as DetalleSeguroSCTR;
 
       // Generic fallback
       return {
         id: "fallback-" + Date.now(),
         lead_id: leadId,
-        marca_auto: "N/A",
-        ano_auto: 0,
-        modelo_auto: "N/A",
-        placa_auto: "N/A",
-        tipo_uso: "Industrial",
+        razon_social: "Empresa S.A.C.",
+        ruc: "12345678901",
+        numero_trabajadores: 50,
+        monto_planilla: 150000,
+        actividad_negocio: "Construcción",
+        tipo_seguro: "SCTR",
         fecha_creacion: new Date().toISOString(),
         fecha_actualizacion: new Date().toISOString(),
-        lead: {
-          id_lead: leadId,
-          nombre: "Usuario",
-          apellido: "Fallback",
-          telefono: "000 000 000",
-        },
       };
     }
   }
@@ -172,6 +168,7 @@ export class CotizacionesService {
 
     switch (normalizedTipo) {
       case "sctr":
+        return this.getDetalleSCTR(leadId);
       case "auto":
         return this.getDetalleAuto(leadId);
       case "salud":

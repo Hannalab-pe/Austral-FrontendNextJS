@@ -120,10 +120,14 @@ export default function NuevoLeadPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Cargando datos...</p>
+      <div className="w-full min-h-screen py-8 px-6">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+              <p className="text-gray-600">Cargando datos...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -131,40 +135,57 @@ export default function NuevoLeadPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Error al cargar los datos</p>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} variant="outline">
-            Reintentar
-          </Button>
+      <div className="w-full min-h-screen py-8 px-6">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <p className="text-red-600 mb-4">Error al cargar los datos</p>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+              >
+                Reintentar
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Nuevo Lead</h1>
-          <p className="text-gray-600 mt-1">
-            Registra una nueva oportunidad de negocio
-          </p>
+    <div className="w-full min-h-screen py-8 px-6">
+      <div className="w-full max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.back()}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </Button>
+            <div>
+              <h1 className="text-4xl font-bold text-blue-900">Nuevo Lead</h1>
+              <p className="text-gray-600 mt-2">
+                Registra una nueva oportunidad de negocio
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Formulario */}
-      <LeadForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        estados={estados}
-        fuentes={fuentes}
-      />
+        {/* Formulario */}
+        <LeadForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          estados={estados}
+          fuentes={fuentes}
+        />
+      </div>
     </div>
   );
 }

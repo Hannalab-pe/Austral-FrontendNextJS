@@ -8,13 +8,40 @@ import {
   DetalleSeguro,
   isDetalleSeguroVehicular,
   isDetalleSeguroSalud,
+  isDetalleSeguroSCTR,
 } from "@/types/api.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
+
+interface CotizacionResult {
+  coberturas: string[];
+  deducibles: number[];
+  metadata: {
+    primaNeta: number;
+    primaComercial: number;
+    tasaAplicada: number;
+    valorAsegurado: number;
+  };
+  garantiasRequeridas: string[];
+  vehiculoBase: {
+    marca: string;
+    modelo: string;
+    anio: number;
+    precioReferencial: number;
+  };
+  prima: number;
+  total: number;
+}
 
 export default function CotizarPage() {
   const router = useRouter();
@@ -24,15 +51,29 @@ export default function CotizarPage() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
+  const [cotizacionData, setCotizacionData] = useState({
+    tipo_seguro: "",
+    datos: {
+      marca: "",
+      modelo: "",
+      anio: 0,
+      valor_vehiculo: 0,
+      tipo_cobertura: "",
+      zona_riesgo: "",
+      antiguedad_licencia: 0,
+    },
+  });
+  const [cotizacionResult, setCotizacionResult] =
+    useState<CotizacionResult | null>(null);
 
   useEffect(() => {
     console.log("CotizarPage: useEffect triggered", { selectedLeadForQuote });
 
     if (!selectedLeadForQuote) {
-      console.log(
-        "CotizarPage: No selected lead, redirecting to /cotizaciones"
-      );
-      router.push("/cotizaciones");
+      console.log("CotizarPage: No selected lead, redirecting to /leads");
+      router.push("/leads");
       return;
     }
 
@@ -75,6 +116,22 @@ export default function CotizarPage() {
 
         console.log("CotizarPage: API response received:", detalle);
         setDetalleSeguro(detalle);
+
+        // Inicializar datos de cotización
+        if (isDetalleSeguroVehicular(detalle)) {
+          setCotizacionData({
+            tipo_seguro: "auto",
+            datos: {
+              marca: detalle.marca_auto,
+              modelo: detalle.modelo_auto,
+              anio: detalle.ano_auto,
+              valor_vehiculo: 0,
+              tipo_cobertura: "",
+              zona_riesgo: "",
+              antiguedad_licencia: 0,
+            },
+          });
+        }
       } catch (err) {
         console.error("CotizarPage: Error fetching detalle seguro:", err);
         setError(err instanceof Error ? err.message : "Error desconocido");
@@ -86,29 +143,55 @@ export default function CotizarPage() {
     fetchDetalleSeguro();
   }, [selectedLeadForQuote, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Aquí iría la lógica para enviar la cotización
-    console.log("Enviando cotización:", {
-      lead: selectedLeadForQuote,
-      detalleSeguro,
-    });
-  };
-
   const handleCancel = () => {
     clearSelectedLeadForQuote();
-    router.push("/cotizaciones");
+    router.push("/leads");
+  };
+
+  const handleCotizar = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3002/cotizaciones/calcular",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(cotizacionData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al enviar la cotización");
+      }
+
+      const result = await response.json();
+      console.log("Cotización enviada exitosamente:", result);
+      setCotizacionResult({
+        ...result,
+        vehiculoBase: {
+          marca: result.vehiculoBase?.marca || cotizacionData.datos.marca,
+          modelo: result.vehiculoBase?.modelo || cotizacionData.datos.modelo,
+          anio: result.vehiculoBase?.anio || cotizacionData.datos.anio,
+          precioReferencial:
+            result.vehiculoBase?.precioReferencial ||
+            cotizacionData.datos.valor_vehiculo,
+        },
+        garantiasRequeridas: result.metadata?.garantiasRequeridas || [],
+      });
+      setIsDialogOpen(false); // Cerrar el modal de formulario
+      setIsResultDialogOpen(true); // Abrir el modal de resultados
+    } catch (error) {
+      console.error("Error al cotizar:", error);
+      // Aquí puedes mostrar un mensaje de error al usuario
+    }
   };
 
   if (!selectedLeadForQuote) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">No hay lead seleccionado</h1>
-          <Button onClick={() => router.push("/cotizaciones")}>
-            Volver a Cotizaciones
-          </Button>
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Cargando...</span>
       </div>
     );
   }
@@ -187,10 +270,7 @@ export default function CotizarPage() {
             )}
 
             {detalleSeguro && (
-              <form
-                onSubmit={handleSubmit}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Campos específicos según el tipo de seguro */}
                 {isDetalleSeguroVehicular(detalleSeguro) && (
                   <>
@@ -343,6 +423,61 @@ export default function CotizarPage() {
                   </>
                 )}
 
+                {isDetalleSeguroSCTR(detalleSeguro) && (
+                  <>
+                    <div>
+                      <Label htmlFor="razon_social">Razón Social</Label>
+                      <Input
+                        id="razon_social"
+                        value={detalleSeguro.razon_social}
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ruc">RUC</Label>
+                      <Input id="ruc" value={detalleSeguro.ruc} readOnly />
+                    </div>
+                    <div>
+                      <Label htmlFor="numero_trabajadores">
+                        Número de Trabajadores
+                      </Label>
+                      <Input
+                        id="numero_trabajadores"
+                        type="number"
+                        value={detalleSeguro.numero_trabajadores}
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="monto_planilla">Monto de Planilla</Label>
+                      <Input
+                        id="monto_planilla"
+                        type="number"
+                        value={`S/ ${detalleSeguro.monto_planilla.toLocaleString()}`}
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="actividad_negocio">
+                        Actividad de Negocio
+                      </Label>
+                      <Input
+                        id="actividad_negocio"
+                        value={detalleSeguro.actividad_negocio}
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="tipo_seguro">Tipo de Seguro</Label>
+                      <Input
+                        id="tipo_seguro"
+                        value={detalleSeguro.tipo_seguro}
+                        readOnly
+                      />
+                    </div>
+                  </>
+                )}
+
                 <div>
                   <Label htmlFor="fecha_creacion">Fecha de Creación</Label>
                   <Input
@@ -356,8 +491,12 @@ export default function CotizarPage() {
                 </div>
 
                 <div className="md:col-span-2 lg:col-span-3 flex gap-4 mt-6">
-                  <Button type="submit" className="flex-1">
-                    Enviar Cotización
+                  <Button
+                    type="button"
+                    className="flex-1"
+                    onClick={() => setIsDialogOpen(true)}
+                  >
+                    Cotizar
                   </Button>
                   <Button
                     type="button"
@@ -367,10 +506,427 @@ export default function CotizarPage() {
                     Cancelar
                   </Button>
                 </div>
-              </form>
+              </div>
             )}
           </CardContent>
         </Card>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Data a Enviar al Bot Cotizador</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Información del Lead */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Información del Lead</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div>
+                    <Label>Nombre</Label>
+                    <Input
+                      value={`${selectedLeadForQuote.nombre} ${
+                        selectedLeadForQuote.apellido || ""
+                      }`}
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input value={selectedLeadForQuote.email || ""} readOnly />
+                  </div>
+                  <div>
+                    <Label>Teléfono</Label>
+                    <Input value={selectedLeadForQuote.telefono} readOnly />
+                  </div>
+                  <div>
+                    <Label>Tipo de Seguro</Label>
+                    <Input
+                      value={selectedLeadForQuote.tipo_seguro_interes || ""}
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <Label>Presupuesto Aproximado</Label>
+                    <Input
+                      value={
+                        selectedLeadForQuote.presupuesto_aproximado
+                          ? `S/ ${selectedLeadForQuote.presupuesto_aproximado}`
+                          : ""
+                      }
+                      readOnly
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Detalles del Seguro */}
+              {detalleSeguro && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Datos para Cotización</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Campos específicos según el tipo de seguro */}
+                    {isDetalleSeguroVehicular(detalleSeguro) && (
+                      <>
+                        <div>
+                          <Label htmlFor="marca">Marca</Label>
+                          <Input
+                            id="marca"
+                            value={cotizacionData.datos.marca}
+                            onChange={(e) =>
+                              setCotizacionData({
+                                ...cotizacionData,
+                                datos: {
+                                  ...cotizacionData.datos,
+                                  marca: e.target.value,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="modelo">Modelo</Label>
+                          <Input
+                            id="modelo"
+                            value={cotizacionData.datos.modelo}
+                            onChange={(e) =>
+                              setCotizacionData({
+                                ...cotizacionData,
+                                datos: {
+                                  ...cotizacionData.datos,
+                                  modelo: e.target.value,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="anio">Año</Label>
+                          <Input
+                            id="anio"
+                            type="number"
+                            value={cotizacionData.datos.anio}
+                            onChange={(e) =>
+                              setCotizacionData({
+                                ...cotizacionData,
+                                datos: {
+                                  ...cotizacionData.datos,
+                                  anio: parseInt(e.target.value) || 0,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="valor_vehiculo">
+                            Valor del Vehículo
+                          </Label>
+                          <Input
+                            id="valor_vehiculo"
+                            type="number"
+                            value={cotizacionData.datos.valor_vehiculo}
+                            onChange={(e) =>
+                              setCotizacionData({
+                                ...cotizacionData,
+                                datos: {
+                                  ...cotizacionData.datos,
+                                  valor_vehiculo:
+                                    parseFloat(e.target.value) || 0,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="tipo_cobertura">
+                            Tipo de Cobertura
+                          </Label>
+                          <Input
+                            id="tipo_cobertura"
+                            value={cotizacionData.datos.tipo_cobertura}
+                            onChange={(e) =>
+                              setCotizacionData({
+                                ...cotizacionData,
+                                datos: {
+                                  ...cotizacionData.datos,
+                                  tipo_cobertura: e.target.value,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="zona_riesgo">Zona de Riesgo</Label>
+                          <Input
+                            id="zona_riesgo"
+                            value={cotizacionData.datos.zona_riesgo}
+                            onChange={(e) =>
+                              setCotizacionData({
+                                ...cotizacionData,
+                                datos: {
+                                  ...cotizacionData.datos,
+                                  zona_riesgo: e.target.value,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="antiguedad_licencia">
+                            Antigüedad de Licencia (años)
+                          </Label>
+                          <Input
+                            id="antiguedad_licencia"
+                            type="number"
+                            value={cotizacionData.datos.antiguedad_licencia}
+                            onChange={(e) =>
+                              setCotizacionData({
+                                ...cotizacionData,
+                                datos: {
+                                  ...cotizacionData.datos,
+                                  antiguedad_licencia:
+                                    parseInt(e.target.value) || 0,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Para otros tipos de seguro, puedes agregar campos similares aquí */}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+            <div className="flex justify-end gap-4 mt-6">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCotizar}>Cotizar</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de Resultados de Cotización */}
+        <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
+          <DialogContent className="w-[95vw] max-w-[1600px] max-h-[90vh] overflow-y-auto p-8">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Resultado de la Cotización</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-6">
+              {cotizacionResult && (
+                <>
+                  {/* Información del Vehículo Base */}
+                  <Card className="h-full">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+                      <CardTitle className="text-lg font-bold text-blue-900">Vehículo Base</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">Marca</Label>
+                          <p className="text-base font-medium text-gray-900">
+                            {cotizacionResult.vehiculoBase?.marca || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Modelo
+                          </Label>
+                          <p className="text-base font-medium text-gray-900">
+                            {cotizacionResult.vehiculoBase?.modelo || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">Año</Label>
+                          <p className="text-base font-medium text-gray-900">
+                            {cotizacionResult.vehiculoBase?.anio || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Precio Referencial
+                          </Label>
+                          <p className="text-base font-medium text-gray-900">
+                            S/{" "}
+                            {cotizacionResult.vehiculoBase?.precioReferencial?.toLocaleString() ||
+                              "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Información de Primas */}
+                  <Card className="h-full">
+                    <CardHeader className="bg-gradient-to-r from-green-50 to-green-100">
+                      <CardTitle className="text-lg font-bold text-green-900">Información de Primas</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-white p-4 rounded-lg border-2 border-green-200">
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Prima Neta
+                          </Label>
+                          <p className="text-xl font-bold text-green-600">
+                            S/{" "}
+                            {cotizacionResult.metadata?.primaNeta?.toLocaleString() ||
+                              "N/A"}
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Prima Comercial
+                          </Label>
+                          <p className="text-xl font-bold text-blue-600">
+                            S/{" "}
+                            {cotizacionResult.metadata?.primaComercial?.toLocaleString() ||
+                              "N/A"}
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border-2 border-purple-200">
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Prima Total
+                          </Label>
+                          <p className="text-xl font-bold text-purple-600">
+                            S/{" "}
+                            {cotizacionResult.prima?.toLocaleString() || "N/A"}
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border-2 border-red-200">
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Total a Pagar
+                          </Label>
+                          <p className="text-2xl font-bold text-red-600">
+                            S/{" "}
+                            {cotizacionResult.total?.toLocaleString() || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Información Adicional */}
+                  <Card className="lg:col-span-2">
+                    <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <CardTitle className="text-lg font-bold text-gray-900">Información Adicional</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Tasa Aplicada
+                          </Label>
+                          <p className="text-lg font-medium text-gray-900">
+                            {cotizacionResult.metadata?.tasaAplicada || "N/A"}%
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Valor Asegurado
+                          </Label>
+                          <p className="text-lg font-medium text-gray-900">
+                            S/{" "}
+                            {cotizacionResult.metadata?.valorAsegurado?.toLocaleString() ||
+                              "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Coberturas */}
+                  <Card className="h-full">
+                    <CardHeader className="bg-gradient-to-r from-green-50 to-green-100">
+                      <CardTitle className="text-lg font-bold text-green-900">Coberturas Incluidas</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {cotizacionResult.coberturas?.map(
+                          (cobertura: string, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200"
+                            >
+                              <span className="text-sm font-medium text-green-800">
+                                {cobertura}
+                              </span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Deducibles */}
+                  <Card className="h-full">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+                      <CardTitle className="text-lg font-bold text-blue-900">Deducibles Disponibles</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="flex flex-wrap gap-4">
+                        {cotizacionResult.deducibles?.map(
+                          (deducible: number, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-center px-6 py-4 bg-blue-50 rounded-lg border-2 border-blue-200 hover:border-blue-400 transition-colors"
+                            >
+                              <span className="text-base font-bold text-blue-800">
+                                S/ {deducible.toLocaleString()}
+                              </span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Garantías Requeridas */}
+                  <Card className="lg:col-span-2">
+                    <CardHeader className="bg-gradient-to-r from-yellow-50 to-yellow-100">
+                      <CardTitle className="text-lg font-bold text-yellow-900">Garantías Requeridas</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="flex flex-wrap gap-4">
+                        {cotizacionResult.garantiasRequeridas &&
+                        cotizacionResult.garantiasRequeridas.length > 0 ? (
+                          cotizacionResult.garantiasRequeridas.map(
+                            (garantia: string, index: number) => (
+                              <div
+                                key={index}
+                                className="flex items-center px-6 py-4 bg-yellow-50 rounded-lg border-2 border-yellow-300 hover:border-yellow-500 transition-colors"
+                              >
+                                <span className="text-base font-bold text-yellow-900">
+                                  {garantia}
+                                </span>
+                              </div>
+                            )
+                          )
+                        ) : (
+                          <p className="text-sm text-gray-500">
+                            No hay garantías requeridas especificadas
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </div>
+            <div className="flex justify-end gap-4 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setIsResultDialogOpen(false)}
+              >
+                Cerrar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

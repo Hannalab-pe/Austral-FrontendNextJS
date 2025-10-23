@@ -76,19 +76,14 @@ export const MOCK_DETALLES_SEGURO: Record<string, DetalleSeguro> = {
   "lead-3": {
     id: "detalle-3",
     lead_id: "lead-3",
-    marca_auto: "N/A",
-    ano_auto: 0,
-    modelo_auto: "N/A",
-    placa_auto: "N/A",
-    tipo_uso: "Industrial",
+    razon_social: "Constructora del Sur S.A.C.",
+    ruc: "20512345678",
+    numero_trabajadores: 45,
+    monto_planilla: 180000,
+    actividad_negocio: "Construcción de Edificios",
+    tipo_seguro: "SCTR",
     fecha_creacion: "2025-10-22T10:00:00Z",
     fecha_actualizacion: "2025-10-22T10:00:00Z",
-    lead: {
-      id_lead: "lead-3",
-      nombre: "Empresa",
-      apellido: "Constructora S.A.",
-      telefono: "999 555 444",
-    },
   },
 
   // Seguro de Vida
@@ -252,6 +247,13 @@ export const getDetalleSeguroByTipo = (tipo: string): DetalleSeguro => {
     fecha_actualizacion: new Date().toISOString(),
   };
 
+  const baseSCTRData = {
+    id: "mock-" + Date.now(),
+    lead_id: "mock-lead",
+    fecha_creacion: new Date().toISOString(),
+    fecha_actualizacion: new Date().toISOString(),
+  };
+
   if (tipoLower.includes("salud")) {
     return {
       ...baseSaludData,
@@ -268,12 +270,13 @@ export const getDetalleSeguroByTipo = (tipo: string): DetalleSeguro => {
 
   if (tipoLower.includes("sctr")) {
     return {
-      ...baseVehicularData,
-      marca_auto: "N/A",
-      ano_auto: 0,
-      modelo_auto: "N/A",
-      placa_auto: "N/A",
-      tipo_uso: "Industrial",
+      ...baseSCTRData,
+      razon_social: "Empresa Constructora S.A.C.",
+      ruc: "20123456789",
+      numero_trabajadores: 50,
+      monto_planilla: 200000,
+      actividad_negocio: "Construcción",
+      tipo_seguro: "SCTR",
     };
   }
 

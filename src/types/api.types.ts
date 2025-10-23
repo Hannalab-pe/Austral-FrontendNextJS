@@ -38,8 +38,25 @@ export interface DetalleSeguroSalud {
   reembolso: boolean;
 }
 
+// Interface para detalles de seguro SCTR
+export interface DetalleSeguroSCTR {
+  id: string;
+  lead_id: string;
+  razon_social: string;
+  ruc: string;
+  numero_trabajadores: number;
+  monto_planilla: number;
+  actividad_negocio: string;
+  tipo_seguro: string;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
 // Union type para cualquier tipo de detalle de seguro
-export type DetalleSeguro = DetalleSeguroVehicular | DetalleSeguroSalud;
+export type DetalleSeguro =
+  | DetalleSeguroVehicular
+  | DetalleSeguroSalud
+  | DetalleSeguroSCTR;
 
 // Type guard para determinar si es vehicular
 export const isDetalleSeguroVehicular = (
@@ -53,4 +70,11 @@ export const isDetalleSeguroSalud = (
   detalle: DetalleSeguro
 ): detalle is DetalleSeguroSalud => {
   return "edad" in detalle && "sexo" in detalle;
+};
+
+// Type guard para determinar si es SCTR
+export const isDetalleSeguroSCTR = (
+  detalle: DetalleSeguro
+): detalle is DetalleSeguroSCTR => {
+  return "razon_social" in detalle && "ruc" in detalle;
 };
