@@ -174,24 +174,6 @@ export default function LeadsPage() {
         </Button>
       </div>
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-600">Total de Leads</p>
-          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-600">Leads Activos</p>
-          <p className="text-2xl font-bold text-blue-600">{stats.activos}</p>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-600">Alta Prioridad</p>
-          <p className="text-2xl font-bold text-red-600">
-            {stats.alta_prioridad}
-          </p>
-        </div>
-      </div>
-
       {/* Barra de búsqueda y filtros */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
         <div className="flex-1 relative">
