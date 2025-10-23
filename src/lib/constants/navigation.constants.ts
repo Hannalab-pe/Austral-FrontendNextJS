@@ -6,6 +6,8 @@ import {
     BarChart3,
     Settings,
     DollarSign,
+    Users,
+    Bot,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
@@ -100,6 +102,18 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
             },
         ],
     },
+    // {
+    //     title: "Agentes",
+    //     url: "/agentes",
+    //     icon: Users,
+    //     items: [
+    //         {
+    //             title: "Agente",
+    //             url: "/agentes/",
+    //             backendRoute: "/agentes",
+    //         },
+    //     ],
+    // },
     {
         title: "Finanzas",
         url: "#",
@@ -118,6 +132,38 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
         ],
     },
     {
+        title: "IA",
+        url: "#",
+        icon: Bot,
+        items: [
+            {
+                title: "Asistente IA",
+                url: "/asistente-ia",
+                backendRoute: "/asistente-ia",
+            },
+            {
+                title: "Factura IA",
+                url: "/factura-ia",
+                backendRoute: "/factura-ia",
+            },
+            {
+                title: "Lector de Documentos",
+                url: "/lector-documentos",
+                backendRoute: "/lector-documentos",
+            },
+            {
+                title: "Generador de Correos",
+                url: "/generador-correos",
+                backendRoute: "/generador-correos",
+            },
+            {
+                title: "Generador de Rutas",
+                url: "/generador-rutas",
+                backendRoute: "/generador-rutas",
+            }
+        ],
+    },
+    {
         title: "Configuración",
         url: "#",
         icon: Settings,
@@ -131,6 +177,11 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
                 title: "Usuarios",
                 url: "/usuarios",
                 backendRoute: "/usuarios",
+            },
+            {
+                title: "Auditoría",
+                url: "/auditoria",
+                backendRoute: "/auditoria",
             },
             {
                 title: "Mi Perfil",

@@ -13,6 +13,8 @@
  */
 
 import { UsuarioFiltros } from '@/types/usuario.interface';
+import { AuditoriaFiltros } from '@/types/auditoria.interface';
+import { ActividadFiltros } from '@/types/actividad.interface';
 
 // ============================================================================
 // USUARIOS
@@ -58,7 +60,7 @@ export const vistasKeys = {
 export const clientesKeys = {
     all: ['clientes'] as const,
     lists: () => [...clientesKeys.all, 'list'] as const,
-    list: (filters?: any) => [...clientesKeys.lists(), { filters }] as const,
+    list: (filters?: Record<string, unknown>) => [...clientesKeys.lists(), { filters }] as const,
     details: () => [...clientesKeys.all, 'detail'] as const,
     detail: (id: string) => [...clientesKeys.details(), id] as const,
 };
@@ -69,7 +71,7 @@ export const clientesKeys = {
 export const leadsKeys = {
     all: ['leads'] as const,
     lists: () => [...leadsKeys.all, 'list'] as const,
-    list: (filters?: any) => [...leadsKeys.lists(), { filters }] as const,
+    list: (filters?: Record<string, unknown>) => [...leadsKeys.lists(), { filters }] as const,
     details: () => [...leadsKeys.all, 'detail'] as const,
     detail: (id: string) => [...leadsKeys.details(), id] as const,
 };
@@ -80,7 +82,7 @@ export const leadsKeys = {
 export const productosKeys = {
     all: ['productos'] as const,
     lists: () => [...productosKeys.all, 'list'] as const,
-    list: (filters?: any) => [...productosKeys.lists(), { filters }] as const,
+    list: (filters?: Record<string, unknown>) => [...productosKeys.lists(), { filters }] as const,
     details: () => [...productosKeys.all, 'detail'] as const,
     detail: (id: string) => [...productosKeys.details(), id] as const,
 };
@@ -91,7 +93,7 @@ export const productosKeys = {
 export const tareasKeys = {
     all: ['tareas'] as const,
     lists: () => [...tareasKeys.all, 'list'] as const,
-    list: (filters?: any) => [...tareasKeys.lists(), { filters }] as const,
+    list: (filters?: Record<string, unknown>) => [...tareasKeys.lists(), { filters }] as const,
     details: () => [...tareasKeys.all, 'detail'] as const,
     detail: (id: string) => [...tareasKeys.details(), id] as const,
 };
@@ -102,7 +104,10 @@ export const tareasKeys = {
 export const actividadesKeys = {
     all: ['actividades'] as const,
     lists: () => [...actividadesKeys.all, 'list'] as const,
-    list: (filters?: any) => [...actividadesKeys.lists(), { filters }] as const,
+    list: (filters?: ActividadFiltros) => [...actividadesKeys.lists(), { filters }] as const,
+    byUsuario: (realizadaPorUsuario: string) => [...actividadesKeys.all, 'by-usuario', realizadaPorUsuario] as const,
+    byTipo: (tipo: string) => [...actividadesKeys.all, 'by-tipo', tipo] as const,
+    byFechaRange: (fechaInicio: Date, fechaFin: Date) => [...actividadesKeys.all, 'by-fecha-range', fechaInicio.toISOString(), fechaFin.toISOString()] as const,
     details: () => [...actividadesKeys.all, 'detail'] as const,
     detail: (id: string) => [...actividadesKeys.details(), id] as const,
 };
@@ -113,7 +118,18 @@ export const actividadesKeys = {
 export const notificacionesKeys = {
     all: ['notificaciones'] as const,
     lists: () => [...notificacionesKeys.all, 'list'] as const,
-    list: (filters?: any) => [...notificacionesKeys.lists(), { filters }] as const,
+    list: (filters?: Record<string, unknown>) => [...notificacionesKeys.lists(), { filters }] as const,
     unread: () => [...notificacionesKeys.all, 'unread'] as const,
     count: () => [...notificacionesKeys.all, 'count'] as const,
+};
+
+// ============================================================================
+// AUDITORIA
+// ============================================================================
+export const auditoriaKeys = {
+    all: ['auditoria'] as const,
+    lists: () => [...auditoriaKeys.all, 'list'] as const,
+    list: (filters?: AuditoriaFiltros) => [...auditoriaKeys.lists(), { filters }] as const,
+    byUsuario: (idUsuario: string, filters?: AuditoriaFiltros) => [...auditoriaKeys.all, 'by-usuario', idUsuario, { filters }] as const,
+    stats: () => [...auditoriaKeys.all, 'stats'] as const,
 };

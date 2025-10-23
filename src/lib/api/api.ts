@@ -8,6 +8,8 @@ import { ApiError } from '@/types/auth.interface';
 const AUTH_SERVICE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const LEADS_SERVICE_URL = process.env.NEXT_PUBLIC_LEADS_SERVICE_URL || 'http://localhost:3002';
 const PRODUCTS_SERVICE_URL = process.env.NEXT_PUBLIC_PRODUCTOS_SERVICE_URL || 'http://localhost:3004';
+const ACTIVITIES_SERVICE_URL = process.env.NEXT_PUBLIC_ACTIVITIES_SERVICE_URL || 'http://localhost:3005';
+const AGENTE_RUTAS_API_URL = process.env.NEXT_PUBLIC_AGENTE_RUTAS_API_URL || 'https://agenterutas.up.railway.app';
 
 // ============================================================================
 // FUNCIÓN PARA CREAR INSTANCIAS DE AXIOS CON INTERCEPTORES
@@ -84,6 +86,23 @@ export const leadsClient: AxiosInstance = createAxiosInstance(LEADS_SERVICE_URL)
  * Usado para: compañías de seguros, tipos de seguros, productos de seguros
  */
 export const productsClient: AxiosInstance = createAxiosInstance(PRODUCTS_SERVICE_URL);
+
+/**
+ * Cliente para Activities Service (puerto 3005)
+ * Usado para: gestión de actividades y calendario
+ */
+export const activitiesClient: AxiosInstance = createAxiosInstance(ACTIVITIES_SERVICE_URL);
+
+/**
+ * Cliente para Agente Rutas API (API externa)
+ * Usado para: generación de rutas optimizadas
+ */
+export const agenteRutasClient: AxiosInstance = axios.create({
+    baseURL: AGENTE_RUTAS_API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
 // ============================================================================
 // EXPORTACIONES LEGACY (mantener compatibilidad)

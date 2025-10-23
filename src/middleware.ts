@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server';
 
 // Rutas que requieren autenticación
 const protectedRoutes = [
+    '/agentes',
+    '/auditoria',
     '/clientes',
     '/leads',
     '/polizas',
