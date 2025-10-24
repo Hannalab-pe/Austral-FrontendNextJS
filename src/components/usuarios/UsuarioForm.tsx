@@ -202,43 +202,6 @@ export default function UsuarioForm({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Información Organizacional (Opcional)</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="id_asociado">ID Asociado</Label>
-            <Input
-              id="idAsociado"
-              placeholder="UUID del asociado"
-              {...register('idAsociado')}
-            />
-            {errors.idAsociado && (
-              <p className="text-sm text-red-600">{errors.idAsociado.message}</p>
-            )}
-            <p className="text-xs text-gray-500">
-              Formato UUID (ej: 550e8400-e29b-41d4-a716-446655440000)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="supervisor_id">ID Supervisor</Label>
-            <Input
-              id="supervisorId"
-              placeholder="UUID del supervisor"
-              {...register('supervisorId')}
-            />
-            {errors.supervisorId && (
-              <p className="text-sm text-red-600">{errors.supervisorId.message}</p>
-            )}
-            <p className="text-xs text-gray-500">
-              Formato UUID (ej: 550e8400-e29b-41d4-a716-446655440000)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="flex justify-end gap-4">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>

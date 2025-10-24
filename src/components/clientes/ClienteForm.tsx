@@ -2,36 +2,54 @@
 
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { clienteSchema, type ClienteFormData } from '@/lib/schemas/cliente.schema';
+import { 
+  createClienteSchema, 
+  type CreateClienteFormData,
+  TIPOS_DOCUMENTO,
+  ESTADOS_CIVILES,
+  formatClienteForApi
+} from '@/lib/schemas/cliente.schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 interface ClienteFormProps {
-  onSubmit: (data: ClienteFormData) => void;
-  initialData?: Partial<ClienteFormData>;
+  onSubmit: (data: CreateClienteFormData) => void;
+  initialData?: Partial<CreateClienteFormData>;
   isLoading?: boolean;
   onCancel?: () => void;
 }
 
-export default function ClienteForm({ onSubmit, initialData, isLoading = false, onCancel }: ClienteFormProps) {
+export default function ClienteForm({ 
+  onSubmit, 
+  initialData, 
+  isLoading = false, 
+  onCancel 
+}: ClienteFormProps) {
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<ClienteFormData>({
-    resolver: zodResolver(clienteSchema),
+  } = useForm<CreateClienteFormData>({
+    resolver: zodResolver(createClienteSchema),
     defaultValues: initialData,
   });
 
-  const handleFormSubmit = (data: ClienteFormData) => {
+  const handleFormSubmit = (data: CreateClienteFormData) => {
     try {
-      onSubmit(data);
+      const formattedData = formatClienteForApi(data);
+      onSubmit(formattedData as CreateClienteFormData);
     } catch (error) {
       toast.error('Error al procesar el formulario');
       console.error(error);
@@ -51,6 +69,7 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="nombre"
               placeholder="Nombre del cliente"
               {...register('nombre')}
+              disabled={isLoading}
             />
             {errors.nombre && (
               <p className="text-sm text-red-600">{errors.nombre.message}</p>
@@ -63,6 +82,7 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="apellido"
               placeholder="Apellido del cliente"
               {...register('apellido')}
+              disabled={isLoading}
             />
             {errors.apellido && (
               <p className="text-sm text-red-600">{errors.apellido.message}</p>
@@ -70,75 +90,87 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tipo_documento">Tipo de Documento *</Label>
+            <Label htmlFor="tipoDocumento">Tipo de Documento *</Label>
             <Controller
-              name="tipo_documento"
+              name="tipoDocumento"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                  disabled={isLoading}
+                >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccione..." />
+                    <SelectValue placeholder="Seleccione tipo de documento" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DNI">DNI</SelectItem>
-                    <SelectItem value="CE">Carnet de Extranjería</SelectItem>
-                    <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
-                    <SelectItem value="RUC">RUC</SelectItem>
+                    {TIPOS_DOCUMENTO.map((tipo) => (
+                      <SelectItem key={tipo.value} value={tipo.value}>
+                        {tipo.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )}
             />
-            {errors.tipo_documento && (
-              <p className="text-sm text-red-600">{errors.tipo_documento.message}</p>
+            {errors.tipoDocumento && (
+              <p className="text-sm text-red-600">{errors.tipoDocumento.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="documento_identidad">Número de Documento *</Label>
+            <Label htmlFor="documentoIdentidad">Número de Documento *</Label>
             <Input
-              id="documento_identidad"
+              id="documentoIdentidad"
               placeholder="Número de documento"
-              {...register('documento_identidad')}
+              {...register('documentoIdentidad')}
+              disabled={isLoading}
             />
-            {errors.documento_identidad && (
-              <p className="text-sm text-red-600">{errors.documento_identidad.message}</p>
+            {errors.documentoIdentidad && (
+              <p className="text-sm text-red-600">{errors.documentoIdentidad.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento *</Label>
+            <Label htmlFor="fechaNacimiento">Fecha de Nacimiento *</Label>
             <Input
-              id="fecha_nacimiento"
+              id="fechaNacimiento"
               type="date"
-              {...register('fecha_nacimiento')}
+              {...register('fechaNacimiento')}
+              disabled={isLoading}
+              max={new Date().toISOString().split('T')[0]}
             />
-            {errors.fecha_nacimiento && (
-              <p className="text-sm text-red-600">{errors.fecha_nacimiento.message}</p>
+            {errors.fechaNacimiento && (
+              <p className="text-sm text-red-600">{errors.fechaNacimiento.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="estado_civil">Estado Civil</Label>
+            <Label htmlFor="estadoCivil">Estado Civil</Label>
             <Controller
-              name="estado_civil"
+              name="estadoCivil"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                  disabled={isLoading}
+                >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccione..." />
+                    <SelectValue placeholder="Seleccione estado civil" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SOLTERO">Soltero(a)</SelectItem>
-                    <SelectItem value="CASADO">Casado(a)</SelectItem>
-                    <SelectItem value="DIVORCIADO">Divorciado(a)</SelectItem>
-                    <SelectItem value="VIUDO">Viudo(a)</SelectItem>
-                    <SelectItem value="CONVIVIENTE">Conviviente</SelectItem>
+                    {ESTADOS_CIVILES.map((estado) => (
+                      <SelectItem key={estado.value} value={estado.value}>
+                        {estado.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )}
             />
-            {errors.estado_civil && (
-              <p className="text-sm text-red-600">{errors.estado_civil.message}</p>
+            {errors.estadoCivil && (
+              <p className="text-sm text-red-600">{errors.estadoCivil.message}</p>
             )}
           </div>
         </CardContent>
@@ -156,6 +188,7 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               type="email"
               placeholder="correo@ejemplo.com"
               {...register('email')}
+              disabled={isLoading}
             />
             {errors.email && (
               <p className="text-sm text-red-600">{errors.email.message}</p>
@@ -168,6 +201,7 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="telefono"
               placeholder="+51 999 999 999"
               {...register('telefono')}
+              disabled={isLoading}
             />
             {errors.telefono && (
               <p className="text-sm text-red-600">{errors.telefono.message}</p>
@@ -175,14 +209,15 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="telefono_secundario">Teléfono Secundario</Label>
+            <Label htmlFor="telefonoSecundario">Teléfono Secundario</Label>
             <Input
-              id="telefono_secundario"
+              id="telefonoSecundario"
               placeholder="+51 999 999 999"
-              {...register('telefono_secundario')}
+              {...register('telefonoSecundario')}
+              disabled={isLoading}
             />
-            {errors.telefono_secundario && (
-              <p className="text-sm text-red-600">{errors.telefono_secundario.message}</p>
+            {errors.telefonoSecundario && (
+              <p className="text-sm text-red-600">{errors.telefonoSecundario.message}</p>
             )}
           </div>
 
@@ -192,6 +227,8 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="direccion"
               placeholder="Dirección completa"
               {...register('direccion')}
+              disabled={isLoading}
+              rows={2}
             />
             {errors.direccion && (
               <p className="text-sm text-red-600">{errors.direccion.message}</p>
@@ -204,7 +241,11 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="distrito"
               placeholder="Distrito"
               {...register('distrito')}
+              disabled={isLoading}
             />
+            {errors.distrito && (
+              <p className="text-sm text-red-600">{errors.distrito.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -213,7 +254,11 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="provincia"
               placeholder="Provincia"
               {...register('provincia')}
+              disabled={isLoading}
             />
+            {errors.provincia && (
+              <p className="text-sm text-red-600">{errors.provincia.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -222,14 +267,18 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="departamento"
               placeholder="Departamento"
               {...register('departamento')}
+              disabled={isLoading}
             />
+            {errors.departamento && (
+              <p className="text-sm text-red-600">{errors.departamento.message}</p>
+            )}
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Información Laboral</CardTitle>
+          <CardTitle>Información Laboral (Opcional)</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -238,7 +287,11 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="ocupacion"
               placeholder="Ocupación"
               {...register('ocupacion')}
+              disabled={isLoading}
             />
+            {errors.ocupacion && (
+              <p className="text-sm text-red-600">{errors.ocupacion.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -247,48 +300,69 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false, 
               id="empresa"
               placeholder="Nombre de la empresa"
               {...register('empresa')}
+              disabled={isLoading}
             />
+            {errors.empresa && (
+              <p className="text-sm text-red-600">{errors.empresa.message}</p>
+            )}
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Contacto de Emergencia</CardTitle>
+          <CardTitle>Contacto de Emergencia (Opcional)</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="contacto_emergencia_nombre">Nombre Completo</Label>
+            <Label htmlFor="contactoEmergenciaNombre">Nombre Completo</Label>
             <Input
-              id="contacto_emergencia_nombre"
+              id="contactoEmergenciaNombre"
               placeholder="Nombre del contacto"
-              {...register('contacto_emergencia_nombre')}
+              {...register('contactoEmergenciaNombre')}
+              disabled={isLoading}
             />
+            {errors.contactoEmergenciaNombre && (
+              <p className="text-sm text-red-600">{errors.contactoEmergenciaNombre.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contacto_emergencia_telefono">Teléfono</Label>
+            <Label htmlFor="contactoEmergenciaTelefono">Teléfono</Label>
             <Input
-              id="contacto_emergencia_telefono"
+              id="contactoEmergenciaTelefono"
               placeholder="+51 999 999 999"
-              {...register('contacto_emergencia_telefono')}
+              {...register('contactoEmergenciaTelefono')}
+              disabled={isLoading}
             />
+            {errors.contactoEmergenciaTelefono && (
+              <p className="text-sm text-red-600">{errors.contactoEmergenciaTelefono.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contacto_emergencia_relacion">Relación</Label>
+            <Label htmlFor="contactoEmergenciaRelacion">Relación</Label>
             <Input
-              id="contacto_emergencia_relacion"
-              placeholder="Ej: Padre, Madre, Hermano, etc."
-              {...register('contacto_emergencia_relacion')}
+              id="contactoEmergenciaRelacion"
+              placeholder="Ej: Padre, Madre, Hermano"
+              {...register('contactoEmergenciaRelacion')}
+              disabled={isLoading}
             />
+            {errors.contactoEmergenciaRelacion && (
+              <p className="text-sm text-red-600">{errors.contactoEmergenciaRelacion.message}</p>
+            )}
           </div>
         </CardContent>
       </Card>
 
       <div className="flex justify-end gap-4">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel} 
+            disabled={isLoading}
+          >
             Cancelar
           </Button>
         )}

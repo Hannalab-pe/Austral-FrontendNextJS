@@ -21,13 +21,10 @@ import {
 } from '@/components/ui/alert-dialog';
 
 /**
- * Página principal de clientes
- * Muestra la lista de clientes según la jerarquía del usuario autenticado:
- * - Admin: Ve todos los clientes
- * - Broker: Ve sus clientes + clientes de sus vendedores
- * - Vendedor: Ve solo sus clientes
+ * Componente principal de la página de clientes
+ * Muestra la lista de clientes según la jerarquía del usuario autenticado
  */
-export default function ClientesPage() {
+export default function ClientesPageClient() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [clienteToDelete, setClienteToDelete] = useState<Cliente | null>(null);
@@ -47,15 +44,15 @@ export default function ClientesPage() {
   });
 
   const handleCreate = () => {
-    router.push('/clientes/nuevo');
+    router.push('/dashboard/clientes/nuevo');
   };
 
   const handleEdit = (cliente: Cliente) => {
-    router.push(`/clientes/${cliente.idCliente}/editar`);
+    router.push(`/dashboard/clientes/${cliente.idCliente}/editar`);
   };
 
   const handleView = (cliente: Cliente) => {
-    router.push(`/clientes/${cliente.idCliente}`);
+    router.push(`/dashboard/clientes/${cliente.idCliente}`);
   };
 
   const handleDelete = (cliente: Cliente) => {
@@ -68,39 +65,26 @@ export default function ClientesPage() {
     }
   };
 
-  const handleExport = () => {
-    toast.info('Función de exportación en desarrollo');
-    // TODO: Implementar exportación a Excel/PDF
-  };
-
-  const handleImport = () => {
-    toast.info('Función de importación en desarrollo');
-    // TODO: Implementar importación desde CSV
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-blue-900">Clientes</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+          <p className="text-muted-foreground">
             Gestiona tu cartera de clientes
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport}>
+          <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
             Exportar
           </Button>
-          <Button variant="outline" size="sm" onClick={handleImport}>
+          <Button variant="outline" size="sm">
             <Upload className="mr-2 h-4 w-4" />
             Importar
           </Button>
-          <Button 
-            onClick={handleCreate}
-            className="bg-green-600 hover:bg-green-700 transition-all duration-200"
-          >
+          <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Nuevo Cliente
           </Button>
@@ -114,7 +98,7 @@ export default function ClientesPage() {
         onDelete={handleDelete}
       />
 
-      {/* Diálogo de confirmación de desactivación */}
+      {/* Diálogo de confirmación de eliminación */}
       <AlertDialog open={!!clienteToDelete} onOpenChange={() => setClienteToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -124,7 +108,7 @@ export default function ClientesPage() {
               <strong>
                 {clienteToDelete?.nombre} {clienteToDelete?.apellido}
               </strong>
-              ? El cliente no será eliminado, solo se marcará como inactivo y no aparecerá en las búsquedas principales.
+              ? El cliente no será eliminado, solo se marcará como inactivo.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -132,7 +116,6 @@ export default function ClientesPage() {
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={deactivateMutation.isPending}
-              className="bg-red-600 hover:bg-red-700"
             >
               {deactivateMutation.isPending ? 'Desactivando...' : 'Desactivar'}
             </AlertDialogAction>

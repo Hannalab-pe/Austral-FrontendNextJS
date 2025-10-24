@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { authService } from '@/services/auth.service';
+import { usuariosService } from '@/services/usuarios.service';
 import { useRoles } from '@/lib/hooks/useRoles';
+import { useAuthStore } from '@/store/authStore';
 
 interface NuevoUsuarioClientProps {
   rolesInitialData?: Rol[];
@@ -19,6 +20,7 @@ interface NuevoUsuarioClientProps {
 export default function NuevoUsuarioClient({ rolesInitialData }: NuevoUsuarioClientProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuthStore();
 
   // Usar el hook de roles con TanStack Query
   const { data: roles = [], isLoading: isLoadingRoles } = useRoles(rolesInitialData);
@@ -27,26 +29,36 @@ export default function NuevoUsuarioClient({ rolesInitialData }: NuevoUsuarioCli
     try {
       setIsLoading(true);
 
+      // Validar que el usuario esté autenticado
+      if (!user) {
+        toast.error('No se pudo identificar el usuario autenticado');
+        setIsLoading(false);
+        return;
+      }
+
       // Limpiar campos vacíos opcionales
       const cleanedData = {
         ...data,
         telefono: data.telefono || undefined,
         documentoIdentidad: data.documentoIdentidad || undefined,
-        idAsociado: data.idAsociado || undefined,
-        supervisorId: data.supervisorId || undefined,
       };
 
-      // Llamar al endpoint de registro
-      await authService.register(cleanedData);
+      // Llamar al endpoint de creación de usuarios (no registro)
+      // El backend automáticamente asigna idAsociado o supervisorId según el rol del usuario autenticado
+      await usuariosService.create(cleanedData);
 
-      toast.success('Usuario registrado exitosamente');
+      toast.success('Usuario creado exitosamente', {
+        description: 'El usuario ha sido registrado en el sistema',
+      });
 
       // Redirigir a la lista de usuarios después de 1 segundo
       setTimeout(() => {
         router.push('/usuarios');
       }, 1000);
     } catch (error: any) {
-      toast.error(error.message || 'Error al registrar usuario');
+      toast.error('Error al crear usuario', {
+        description: error.message || 'No se pudo crear el usuario',
+      });
       console.error('Error:', error);
       setIsLoading(false);
     }

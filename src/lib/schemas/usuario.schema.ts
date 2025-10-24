@@ -38,16 +38,6 @@ export const usuarioSchema = z.object({
         .max(20, 'Máximo 20 caracteres')
         .optional()
         .or(z.literal('')),
-    idAsociado: z
-        .string()
-        .uuid('ID de asociado inválido')
-        .optional()
-        .or(z.literal('')),
-    supervisorId: z
-        .string()
-        .uuid('ID de supervisor inválido')
-        .optional()
-        .or(z.literal('')),
     idRol: z
         .string()
         .uuid('Debe seleccionar un rol')
@@ -86,16 +76,6 @@ export const updateUsuarioSchema = z.object({
         .string()
         .min(8, 'Documento inválido')
         .max(20, 'Máximo 20 caracteres')
-        .optional()
-        .or(z.literal('')),
-    idAsociado: z
-        .string()
-        .uuid('ID de asociado inválido')
-        .optional()
-        .or(z.literal('')),
-    supervisorId: z
-        .string()
-        .uuid('ID de supervisor inválido')
         .optional()
         .or(z.literal('')),
     idRol: z

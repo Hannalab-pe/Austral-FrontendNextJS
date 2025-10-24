@@ -100,13 +100,7 @@ export default function GeneradorRutasPage() {
                 </Label>
                 <Textarea
                   id="query"
-                  placeholder="Ejemplo:
-• Visitar cliente en Av. Corrientes 1234, Buenos Aires
-• Entregar documentos en Calle Florida 567, Buenos Aires
-• Reunión en Córdoba 890, Rosario
-• Recoger mercadería en Av. Santa Fe 111, Córdoba
-
-O simplemente: 'Visitar clientes en Buenos Aires, Córdoba y Rosario'"
+                  placeholder="Ejemplo: Visitar la oficina en Av. Siempre Viva 123, luego recoger paquetes en Calle Falsa 456, y finalmente ir al supermercado en Plaza Central."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   rows={12}

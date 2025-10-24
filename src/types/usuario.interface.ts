@@ -6,14 +6,14 @@ export interface Usuario {
     apellido: string;
     telefono?: string;
     documentoIdentidad?: string;
-    idAsociado?: string;
-    supervisorId?: string;
     estaActivo: boolean;
     ultimoAcceso?: Date | string;
     intentosFallidos: number;
     cuentaBloqueada: boolean;
     idRol: string;
     fechaCreacion: Date | string;
+    // Relación con rol
+    rol?: Rol;
     // Campos adicionales para mostrar en UI
     rolNombre?: string;
     nombreCompleto?: string;
@@ -27,8 +27,6 @@ export interface CreateUsuarioDto {
     apellido: string;
     telefono?: string;
     documentoIdentidad?: string;
-    idAsociado?: string;
-    supervisorId?: string;
     idRol: string;
 }
 
@@ -39,8 +37,6 @@ export interface UpdateUsuarioDto {
     apellido?: string;
     telefono?: string;
     documentoIdentidad?: string;
-    idAsociado?: string;
-    supervisorId?: string;
     idRol?: string;
 }
 
@@ -81,4 +77,15 @@ export interface Vista {
     ruta: string;
     estaActiva: boolean;
     fechaCreacion: Date | string;
+}
+
+export interface BrokerVendedor {
+    idBroker: string;
+    idVendedor: string;
+    porcentajeComision: number;
+    estaActivo: boolean;
+    fechaAsignacion: Date | string;
+    // Relaciones
+    broker?: Usuario;
+    vendedor?: Usuario;
 }
