@@ -8,6 +8,7 @@ import {
     DollarSign,
     Users,
     Bot,
+    UserCheck,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
@@ -55,6 +56,23 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
                 title: "Asociados",
                 url: "/asociados",
                 backendRoute: "/asociados",
+            },
+        ],
+    },
+    {
+        title: "Broker",
+        url: "#",
+        icon: UserCheck,
+        items: [
+            {
+                title: "Dashboard",
+                url: "/brokers",
+                backendRoute: "/brokers",
+            },
+            {
+                title: "Mis Vendedores",
+                url: "/brokers/vendedores",
+                backendRoute: "/brokers/vendedores",
             },
         ],
     },
