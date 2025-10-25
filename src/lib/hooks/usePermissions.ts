@@ -2,13 +2,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { permisosService } from '@/services/permisos.service';
+import { authService } from '@/services/auth.service';
 import {
     VerificarPermisoRequest,
     VerificarVistaRequest,
     VerificarRutaRequest,
     Vista,
 } from '@/types/permisos.interface';
-import { NAVIGATION_CONFIG, filterNavigationByPermissions, NavigationItem } from '@/lib/constants/navigation.constants';
+import { NAVIGATION_CONFIG, filterNavigationByPermissions, getNavigationConfigByRole, NavigationItem } from '@/lib/constants/navigation.constants';
 
 // Tipos para permisos
 export interface PermissionCheck {
@@ -277,39 +278,27 @@ export const useNavigationPermissions = () => {
                 setLoading(true);
                 setError(null);
 
-                // Obtener todas las vistas disponibles
-                const allViewsResponse = await permisosService.getVistas();
-                const allViews = allViewsResponse.vistas;
+                // Obtener el nombre del rol del token JWT
+                const token = localStorage.getItem('auth-token');
+                let roleName = 'vendedor'; // default
 
-                // Filtrar solo las vistas a las que el usuario tiene acceso
-                const allowedViewsPromises = allViews.map(async (vista) => {
-                    try {
-                        const request: VerificarVistaRequest = {
-                            idUsuario: user.idUsuario,
-                            vista: vista.ruta
-                        };
-                        const response = await permisosService.verificarVista(request);
-                        return response.tienePermiso ? vista : null;
-                    } catch (error) {
-                        console.error(`Error verificando vista ${vista.ruta}:`, error);
-                        return null;
+                if (token) {
+                    const decoded = authService.decodeToken(token);
+                    if (decoded?.rol?.nombre) {
+                        roleName = decoded.rol.nombre;
                     }
-                });
+                }
 
-                const allowedViewsResults = await Promise.all(allowedViewsPromises);
-                const filteredViews = allowedViewsResults.filter((vista): vista is Vista => vista !== null);
+                // Obtener la configuración de navegación basada en el nombre del rol
+                const navigationConfig = getNavigationConfigByRole(roleName);
 
-                // Obtener las rutas permitidas para filtrar la navegación
-                const allowedRoutes = filteredViews.map(vista => vista.ruta);
-
-                // Filtrar la navegación basada en los permisos
-                const filteredNav = filterNavigationByPermissions(NAVIGATION_CONFIG, allowedRoutes);
-
-                setAllowedViews(filteredViews);
-                setFilteredNavigation(filteredNav);
+                // Por ahora, devolver la configuración completa sin filtrar por permisos
+                // para verificar que la navegación funciona
+                setAllowedViews([]);
+                setFilteredNavigation(navigationConfig);
             } catch (error) {
-                console.error('Error obteniendo vistas permitidas:', error);
-                setError('Error al cargar permisos de navegación');
+                console.error('Error obteniendo configuración de navegación:', error);
+                setError('Error al cargar configuración de navegación');
                 setAllowedViews([]);
                 setFilteredNavigation([]);
             } finally {

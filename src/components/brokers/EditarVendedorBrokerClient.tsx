@@ -30,7 +30,7 @@ export default function EditarVendedorBrokerClient() {
         // Validar que el usuario esté autenticado
         if (!user) {
           toast.error('No se pudo identificar el usuario autenticado');
-          router.push('/brokers/vendedores');
+          router.push('/broker/vendedores');
           return;
         }
 
@@ -38,14 +38,14 @@ export default function EditarVendedorBrokerClient() {
         const token = localStorage.getItem('auth-token');
         if (!token) {
           toast.error('No se encontró el token de autenticación');
-          router.push('/brokers/vendedores');
+          router.push('/broker/vendedores');
           return;
         }
 
         const decodedToken = authService.decodeToken(token);
         if (!decodedToken?.rol?.nombre || decodedToken.rol.nombre !== 'Broker') {
           toast.error('Solo los Brokers pueden editar vendedores');
-          router.push('/brokers/vendedores');
+          router.push('/broker/vendedores');
           return;
         }
 
@@ -57,7 +57,7 @@ export default function EditarVendedorBrokerClient() {
 
         if (!vendedor) {
           toast.error('Vendedor no encontrado o no tienes permisos para editarlo');
-          router.push('/brokers/vendedores');
+          router.push('/broker/vendedores');
           return;
         }
 
@@ -68,7 +68,7 @@ export default function EditarVendedorBrokerClient() {
           description: errorMessage,
         });
         console.error('Error obteniendo vendedor:', error);
-        router.push('/brokers/vendedores');
+        router.push('/broker/vendedores');
       } finally {
         setLoadingData(false);
       }
@@ -97,7 +97,7 @@ export default function EditarVendedorBrokerClient() {
 
       // Redirigir a la lista de vendedores después de 1.5 segundos
       setTimeout(() => {
-        router.push('/brokers/vendedores');
+        router.push('/broker/vendedores');
       }, 1500);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'No se pudo actualizar el vendedor';
@@ -111,7 +111,7 @@ export default function EditarVendedorBrokerClient() {
 
   const handleCancel = () => {
     if (confirm('¿Estás seguro de cancelar? Los cambios no guardados se perderán.')) {
-      router.push('/brokers/vendedores');
+      router.push('/broker/vendedores');
     }
   };
 
@@ -151,7 +151,7 @@ export default function EditarVendedorBrokerClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => router.push('/brokers/vendedores')}>
+          <Button onClick={() => router.push('/broker/vendedores')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a la lista
           </Button>
@@ -164,7 +164,7 @@ export default function EditarVendedorBrokerClient() {
     <div className="space-y-6">
       {/* Header con navegación */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/brokers/vendedores')}>
+        <Button variant="ghost" size="icon" onClick={() => router.push('/broker/vendedores')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>

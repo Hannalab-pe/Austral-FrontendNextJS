@@ -49,11 +49,11 @@ export default function BrokersDashboardClient() {
   }, []);
 
   const handleNuevoVendedor = () => {
-    router.push('/brokers/vendedores/nuevo');
+    router.push('/broker/vendedores/nuevo');
   };
 
   const handleVerVendedores = () => {
-    router.push('/brokers/vendedores');
+    router.push('/broker/vendedores');
   };
 
   if (loading) {

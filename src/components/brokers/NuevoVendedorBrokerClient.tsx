@@ -58,7 +58,7 @@ export default function NuevoVendedorBrokerClient() {
 
       // Redirigir a la lista de vendedores después de 1.5 segundos
       setTimeout(() => {
-        router.push('/brokers/vendedores');
+        router.push('/broker/vendedores');
       }, 1500);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'No se pudo registrar el vendedor';
@@ -72,7 +72,7 @@ export default function NuevoVendedorBrokerClient() {
 
   const handleCancel = () => {
     if (confirm('¿Estás seguro de cancelar? Los datos no guardados se perderán.')) {
-      router.push('/brokers/vendedores');
+      router.push('/broker/vendedores');
     }
   };
 
@@ -80,7 +80,7 @@ export default function NuevoVendedorBrokerClient() {
     <div className="space-y-6">
       {/* Header con navegación */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/brokers/vendedores')}>
+        <Button variant="ghost" size="icon" onClick={() => router.push('/broker/vendedores')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>

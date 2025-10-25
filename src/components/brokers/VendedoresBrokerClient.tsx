@@ -65,11 +65,11 @@ export default function VendedoresBrokerClient() {
   }, [searchTerm, vendedores]);
 
   const handleNuevoVendedor = () => {
-    router.push('/brokers/vendedores/nuevo');
+    router.push('/broker/vendedores/nuevo');
   };
 
   const handleEditarVendedor = (vendedorId: string) => {
-    router.push(`/brokers/vendedores/${vendedorId}/editar`);
+    router.push(`/broker/vendedores/${vendedorId}/editar`);
   };
 
   const formatDate = (dateString: string) => {

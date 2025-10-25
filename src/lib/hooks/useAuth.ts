@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter, usePathname } from 'next/navigation';
+import { authService } from '@/services/auth.service';
 
 /**
  * Hook personalizado para facilitar el uso del authStore
@@ -28,13 +29,55 @@ export const useAuth = () => {
     }, [checkAuth]);
 
     // Función helper para verificar si el usuario tiene un rol específico
-    const hasRole = (roleId: string): boolean => {
-        return user?.idRol === roleId;
+    const hasRole = (roleName: string): boolean => {
+        const token = localStorage.getItem('auth-token');
+        if (token) {
+            const decoded = authService.decodeToken(token);
+            return decoded?.rol?.nombre?.toLowerCase() === roleName.toLowerCase();
+        }
+        return false;
     };
 
     // Función helper para verificar si el usuario tiene alguno de los roles
-    const hasAnyRole = (roleIds: string[]): boolean => {
-        return user ? roleIds.includes(user.idRol) : false;
+    const hasAnyRole = (roleNames: string[]): boolean => {
+        const token = localStorage.getItem('auth-token');
+        if (token) {
+            const decoded = authService.decodeToken(token);
+            const userRole = decoded?.rol?.nombre?.toLowerCase();
+            return userRole ? roleNames.some(role => role.toLowerCase() === userRole) : false;
+        }
+        return false;
+    };
+
+    // Función helper para obtener la ruta por defecto basada en el rol
+    const getDefaultRoute = (): string => {
+        // Obtener el rol del token JWT
+        const token = localStorage.getItem('auth-token');
+        if (!token) {
+            throw new Error('No se encontró token de autenticación');
+        }
+
+        const decoded = authService.decodeToken(token);
+        if (!decoded?.rol?.nombre) {
+            throw new Error('No se pudo determinar el rol del usuario');
+        }
+
+        const roleName = decoded.rol.nombre.toLowerCase();
+
+        switch (roleName) {
+            case 'administrador':
+                return '/admin/dashboard';
+            case 'admin':
+                return '/admin/dashboard';
+            case 'broker':
+                return '/broker/dashboard';
+            case 'brokers':
+                return '/broker/dashboard';
+            case 'vendedor':
+                return '/vendedor/actividades';
+            default:
+                throw new Error(`Rol desconocido: "${decoded.rol.nombre}"`);
+        }
     };
 
     // Función helper para redirigir si no está autenticado
@@ -63,6 +106,7 @@ export const useAuth = () => {
         hasRole,
         hasAnyRole,
         requireAuth,
+        getDefaultRoute,
     };
 };
 
