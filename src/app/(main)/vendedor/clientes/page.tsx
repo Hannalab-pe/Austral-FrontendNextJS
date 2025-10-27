@@ -6,7 +6,7 @@ import ClientesTable from '@/components/clientes/tables/ClientesTable';
 import { Cliente } from '@/types/cliente.interface';
 
 export const metadata = {
- title: 'Clientes Vendedor',
+ title: 'Austral | Clientes',
  description: 'Interfaz de gestión de clientes para vendedores',
 };
 
