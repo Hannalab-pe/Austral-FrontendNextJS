@@ -56,7 +56,7 @@ export interface CreateActividadDto {
 
 export interface UpdateActividadDto extends Partial<CreateActividadDto> {
     // Esta interfaz hereda todos los campos opcionales de CreateActividadDto
-    // No se requieren campos adicionales específicos para actualización
+    // Se mantiene como interfaz separada para claridad semántica y posibles extensiones futuras
 }
 
 export interface ActividadFiltros {

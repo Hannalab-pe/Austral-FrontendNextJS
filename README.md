@@ -1,4 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This i```env
+# Decolecta API Configuration (for client registration)
+# Get your free token at https://decolecta.com/api
+# NOTE: Uses local API routes by default to avoid CORS issues in development
+NEXT_PUBLIC_DECOLECTA_API_TOKEN=your_decolecta_api_token_here
+NEXT_PUBLIC_DECOLECTA_API_BASE_URL=/api/decolecta
+```xt.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Environment Variables
+
+Create a `.env.local` file in the root directory and configure the following variables:
+
+```env
+# Decolecta API Configuration (for client registration)
+# Get your free token at https://decolecta.com/api
+# NOTE: Uses local proxy by default to avoid CORS issues in development
+NEXT_PUBLIC_DECOLECTA_API_TOKEN=your_decolecta_api_token_here
+NEXT_PUBLIC_DECOLECTA_API_BASE_URL=/proxy/decolecta/v1
+```
+
+### Decolecta API Setup
+
+1. Register at [Decolecta API](https://decolecta.com/api)
+2. Get your free API token (1000 requests/month)
+3. Add the token to your `.env.local` file
+4. The API allows automatic client data lookup by DNI (Peruvian ID) or RUC (tax ID)
+5. **CORS Handling**: The app uses a Next.js proxy to avoid CORS issues during development
+
+### Form Management
+
+The client registration form uses `react-hook-form` for efficient form state management and validation:
+
+- **Controller**: For complex components like Select and Checkbox
+- **register**: For simple input fields
+- **setValue**: For auto-filling data from API responses
+- **watch**: For reactive form behavior
 
 ## Getting Started
 

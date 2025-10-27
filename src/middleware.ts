@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Tipo para el payload del JWT
+interface JWTPayload {
+    exp?: number;
+    iat?: number;
+    [key: string]: unknown;
+}
+
 // Rutas que requieren autenticación
 const protectedRoutes = [
     '/admin/dashboard',
@@ -15,7 +22,7 @@ const publicRoutes = ['/login', '/forgot-password', '/register'];
  * Decodificar token JWT sin validar firma
  * Solo para extraer información en el middleware
  */
-function decodeToken(token: string): any {
+function decodeToken(token: string): JWTPayload | null {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -26,7 +33,7 @@ function decodeToken(token: string): any {
                 .join('')
         );
         return JSON.parse(jsonPayload);
-    } catch (error) {
+    } catch {
         return null;
     }
 }
@@ -41,7 +48,7 @@ function isTokenExpired(token: string): boolean {
 
         const currentTime = Date.now() / 1000;
         return decoded.exp < currentTime;
-    } catch (error) {
+    } catch {
         return true;
     }
 }

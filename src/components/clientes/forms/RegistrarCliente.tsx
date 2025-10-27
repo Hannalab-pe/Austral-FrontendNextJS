@@ -1,8 +1,7 @@
-
-
 'use client';
 
 import React, { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, User, Phone, FileText, Plus, Trash2 } from 'lucide-react';
+import ConsultaDocumento from '@/components/clientes/ConsultaDocumento';
+import { DatosPersona, DatosEmpresa } from '@/services/decolecta.service';
+
+// Interfaz para el formulario
+interface ClienteFormData {
+  tipoPersona: string;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  nombres: string;
+  apellidos: string;
+  razonSocial: string;
+  telefono1: string;
+  telefono2: string;
+  whatsapp: string;
+  emailNotificaciones: string;
+  recibirNotificaciones: boolean;
+  direccion: string;
+  distrito: string;
+  provincia: string;
+  departamento: string;
+}
 
 const STEPS = [
   { id: 1, title: 'Información Básica', description: 'Datos personales del cliente', icon: User },
@@ -23,6 +43,53 @@ export default function RegistrarCliente() {
   const [currentStep, setCurrentStep] = useState(1);
   const [contactos, setContactos] = useState([{ id: 1, nombre: '', cargo: '', telefono: '', correo: '' }]);
   const [documentos, setDocumentos] = useState([{ id: 1, tipoDocumento: '', archivo: null, descripcion: '' }]);
+
+  // Estado del formulario con react-hook-form
+  const { control, register, setValue, watch } = useForm<ClienteFormData>({
+    defaultValues: {
+      tipoPersona: '',
+      tipoDocumento: '',
+      numeroDocumento: '',
+      nombres: '',
+      apellidos: '',
+      razonSocial: '',
+      telefono1: '',
+      telefono2: '',
+      whatsapp: '',
+      emailNotificaciones: '',
+      recibirNotificaciones: false,
+      direccion: '',
+      distrito: '',
+      provincia: '',
+      departamento: '',
+    },
+  });
+
+  // Estado para datos encontrados por API
+  const [datosEncontrados, setDatosEncontrados] = useState<DatosPersona | DatosEmpresa | null>(null);
+
+  // Función para manejar datos encontrados por la API
+  const handleDatosEncontrados = (datos: DatosPersona | DatosEmpresa | null) => {
+    setDatosEncontrados(datos);
+
+    // Auto-llenar campos según el tipo de datos
+    if (datos && 'nombres' in datos) {
+      // Es una persona natural
+      setValue('tipoPersona', 'NATURAL');
+      setValue('nombres', datos.nombres);
+      setValue('apellidos', datos.apellidos);
+      if (datos.direccion) {
+        setValue('direccion', datos.direccion);
+      }
+    } else if (datos && 'razonSocial' in datos) {
+      // Es una empresa
+      setValue('tipoPersona', 'JURIDICO');
+      setValue('razonSocial', datos.razonSocial);
+      if (datos.direccion) {
+        setValue('direccion', datos.direccion);
+      }
+    }
+  };
 
   const nextStep = () => {
     if (currentStep < STEPS.length) {
@@ -103,112 +170,216 @@ export default function RegistrarCliente() {
 
   const renderStep1 = () => (
     <div className="space-y-6">
+      {/* Componente de consulta de documento */}
+      <ConsultaDocumento
+        tipoDocumento={watch('tipoDocumento') as 'DNI' | 'RUC'}
+        numeroDocumento={watch('numeroDocumento')}
+        onNumeroDocumentoChange={(numero) => setValue('numeroDocumento', numero)}
+        onDatosEncontrados={handleDatosEncontrados}
+      />
+
+      {/* Indicador de datos encontrados */}
+      {datosEncontrados && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-800">
+                Datos encontrados automáticamente
+              </p>
+              <p className="text-sm text-green-700">
+                Los campos han sido completados con la información obtenida de la consulta.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Tipo de Persona */}
         <div className="space-y-2">
           <Label htmlFor="tipoPersona">Tipo de Persona *</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccionar tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="NATURAL">Persona Natural</SelectItem>
-              <SelectItem value="JURIDICO">Persona Jurídica</SelectItem>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="tipoPersona"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NATURAL">Persona Natural</SelectItem>
+                  <SelectItem value="JURIDICO">Persona Jurídica</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
 
         {/* Tipo de Documento */}
         <div className="space-y-2">
           <Label htmlFor="tipoDocumento">Tipo de Documento *</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccionar documento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="DNI">DNI</SelectItem>
-              <SelectItem value="CEDULA">Cédula</SelectItem>
-              <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
-              <SelectItem value="RUC">RUC</SelectItem>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="tipoDocumento"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar documento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DNI">DNI</SelectItem>
+                  <SelectItem value="CEDULA">Cédula</SelectItem>
+                  <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
+                  <SelectItem value="RUC">RUC</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
 
         {/* Número de Documento */}
         <div className="space-y-2">
           <Label htmlFor="numeroDocumento">Número de Documento *</Label>
-          <Input id="numeroDocumento" placeholder="Ingrese número de documento" />
+          <Input
+            id="numeroDocumento"
+            placeholder="Ej: 12345678"
+            {...register('numeroDocumento')}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '');
+              setValue('numeroDocumento', value);
+            }}
+          />
         </div>
 
         {/* Teléfono Principal */}
         <div className="space-y-2">
           <Label htmlFor="telefono1">Teléfono Principal *</Label>
-          <Input id="telefono1" placeholder="Ingrese teléfono principal" />
+          <Input
+            id="telefono1"
+            placeholder="Ej: 925757151"
+            {...register('telefono1')}
+          />
         </div>
 
         {/* Nombres (solo para natural) */}
         <div className="space-y-2">
           <Label htmlFor="nombres">Nombres</Label>
-          <Input id="nombres" placeholder="Ingrese nombres" />
+          <Input
+            id="nombres"
+            placeholder="Ej: Hannah"
+            {...register('nombres')}
+          />
         </div>
 
         {/* Apellidos (solo para natural) */}
         <div className="space-y-2">
           <Label htmlFor="apellidos">Apellidos</Label>
-          <Input id="apombres" placeholder="Ingrese apellidos" />
+          <Input
+            id="apellidos"
+            placeholder="Ej: Pérez"
+            {...register('apellidos')}
+          />
         </div>
 
         {/* Razón Social (solo para jurídico) */}
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="razonSocial">Razón Social</Label>
-          <Input id="razonSocial" placeholder="Ingrese razón social" />
+          <Input
+            id="razonSocial"
+            placeholder="Ej: Mi Empresa S.A."
+            {...register('razonSocial')}
+          />
         </div>
 
         {/* Dirección */}
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="direccion">Dirección *</Label>
-          <Textarea id="direccion" placeholder="Ingrese dirección completa" />
+          <Textarea
+            id="direccion"
+            placeholder="Ej: Av. Siempre Viva 123, Lima"
+            {...register('direccion')}
+          />
         </div>
 
         {/* Distrito */}
         <div className="space-y-2">
           <Label htmlFor="distrito">Distrito</Label>
-          <Input id="distrito" placeholder="Ingrese distrito" />
+          <Input
+            id="distrito"
+            placeholder="Ingrese distrito"
+            {...register('distrito')}
+          />
         </div>
 
         {/* Provincia */}
         <div className="space-y-2">
           <Label htmlFor="provincia">Provincia</Label>
-          <Input id="provincia" placeholder="Ingrese provincia" />
+          <Input
+            id="provincia"
+            placeholder="Ingrese provincia"
+            {...register('provincia')}
+          />
         </div>
 
         {/* Departamento */}
         <div className="space-y-2">
           <Label htmlFor="departamento">Departamento</Label>
-          <Input id="departamento" placeholder="Ingrese departamento" />
+          <Input
+            id="departamento"
+            placeholder="Ingrese departamento"
+            {...register('departamento')}
+          />
         </div>
 
         {/* Teléfono Secundario */}
         <div className="space-y-2">
           <Label htmlFor="telefono2">Teléfono Secundario</Label>
-          <Input id="telefono2" placeholder="Ingrese teléfono secundario" />
+          <Input
+            id="telefono2"
+            placeholder="Ingrese teléfono secundario"
+            {...register('telefono2')}
+          />
         </div>
 
         {/* WhatsApp */}
         <div className="space-y-2">
-          <Label htmlFor="whatsapp">WhatsApp</Label>
-          <Input id="whatsapp" placeholder="Ingrese número de WhatsApp" />
+          <Label className='text-green-600' htmlFor="whatsapp">WhatsApp</Label>
+          <Input
+            id="whatsapp"
+            placeholder="Ej: +51 925757151"
+            {...register('whatsapp')}
+          />
         </div>
 
         {/* Email para Notificaciones */}
         <div className="space-y-2">
           <Label htmlFor="emailNotificaciones">Email para Notificaciones</Label>
-          <Input id="emailNotificaciones" type="email" placeholder="Ingrese email" />
+          <Input
+            id="emailNotificaciones"
+            type="email"
+            placeholder="austral@ejemplo.com"
+            {...register('emailNotificaciones')}
+          />
         </div>
 
         {/* Recibir Notificaciones */}
         <div className="space-y-2 flex items-center space-x-2">
-          <Checkbox id="recibirNotificaciones" defaultChecked />
+          <Controller
+            name="recibirNotificaciones"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                id="recibirNotificaciones"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
           <Label htmlFor="recibirNotificaciones">Recibir notificaciones</Label>
         </div>
       </div>
