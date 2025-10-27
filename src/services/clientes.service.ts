@@ -9,6 +9,23 @@ import type {
 
 const CLIENTES_BASE_URL = '/clientes';
 
+export interface ContactoCliente {
+    idContacto: string;
+    idCliente: string;
+    nombre: string;
+    cargo?: string;
+    telefono?: string;
+    correo?: string;
+    fechaCreacion: string;
+}
+
+export interface CreateContactoData {
+    nombre: string;
+    cargo?: string;
+    telefono?: string;
+    correo?: string;
+}
+
 export const clientesService = {
     /**
      * Obtiene todos los clientes según la jerarquía del usuario autenticado
@@ -16,8 +33,22 @@ export const clientesService = {
      * - Broker: Ve clientes propios y de sus vendedores
      * - Vendedor: Ve solo sus clientes
      */
-    async getAll(): Promise<Cliente[]> {
-        const response = await api.get<Cliente[]>(CLIENTES_BASE_URL);
+    async getAll(filters?: {
+        esta_activo?: boolean;
+        search?: string;
+    }): Promise<Cliente[]> {
+        const params = new URLSearchParams();
+        if (filters?.esta_activo !== undefined) {
+            params.append('esta_activo', filters.esta_activo.toString());
+        }
+        if (filters?.search) {
+            params.append('search', filters.search);
+        }
+
+        const queryString = params.toString();
+        const url = queryString ? `${CLIENTES_BASE_URL}?${queryString}` : CLIENTES_BASE_URL;
+
+        const response = await api.get<Cliente[]>(url);
         return response.data;
     },
 
@@ -25,17 +56,17 @@ export const clientesService = {
      * Obtiene clientes con paginación y filtros
      */
     async getPaginated(page: number = 1, limit: number = 10, filters?: {
-        estaActivo?: boolean;
+        esta_activo?: boolean;
         search?: string;
     }): Promise<ClientePaginado> {
         const params = new URLSearchParams({
             page: page.toString(),
             limit: limit.toString(),
-            ...(filters?.estaActivo !== undefined && { estaActivo: filters.estaActivo.toString() }),
+            ...(filters?.esta_activo !== undefined && { esta_activo: filters.esta_activo.toString() }),
             ...(filters?.search && { search: filters.search }),
         });
 
-        const response = await api.get<ClientePaginado>(`${CLIENTES_BASE_URL}?${params}`);
+        const response = await api.get<ClientePaginado>(`${CLIENTES_BASE_URL}/paginated?${params}`);
         return response.data;
     },
 
@@ -48,14 +79,9 @@ export const clientesService = {
     },
 
     /**
-     * Crea un nuevo cliente
-     * - registradoPor se asigna automáticamente desde el token JWT
-     * - brokerAsignado se asigna según el rol:
-     *   - Admin: no asigna broker
-     *   - Broker: se asigna a sí mismo
-     *   - Vendedor: se asigna su supervisor (broker)
+     * Crea un nuevo cliente con contactos opcionales
      */
-    async create(data: CreateClienteDto): Promise<Cliente> {
+    async create(data: CreateClienteDto & { contactos?: CreateContactoData[] }): Promise<Cliente> {
         console.log('🔧 clientesService.create() - Datos recibidos:', data);
         console.log('🔧 URL del servicio:', CLIENTES_BASE_URL);
         console.log('🔧 Base URL completa:', api.defaults.baseURL + CLIENTES_BASE_URL);
@@ -91,28 +117,41 @@ export const clientesService = {
      * Activa un cliente (estaActivo = true)
      */
     async activate(id: string): Promise<Cliente> {
-        const response = await api.patch<Cliente>(`${CLIENTES_BASE_URL}/${id}/activar`);
+        const response = await api.patch<Cliente>(`${CLIENTES_BASE_URL}/${id}/activate`);
         return response.data;
     },
 
     /**
      * Desactiva un cliente (estaActivo = false)
      */
-    async deactivate(id: string): Promise<Cliente> {
-        const response = await api.patch<Cliente>(`${CLIENTES_BASE_URL}/${id}/desactivar`);
+    async deactivate(id: string): Promise<{ message: string }> {
+        const response = await api.patch(`${CLIENTES_BASE_URL}/${id}/deactivate`);
         return response.data;
+    },
+
+    /**
+     * Busca cliente por documento
+     */
+    async findByDocumento(tipoDocumento: string, numeroDocumento: string): Promise<Cliente | null> {
+        try {
+            const response = await api.get<Cliente>(
+                `${CLIENTES_BASE_URL}/documento/${tipoDocumento}/${numeroDocumento}`
+            );
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                return null;
+            }
+            throw error;
+        }
     },
 
     /**
      * Obtiene estadísticas de clientes
      */
     async getStats(): Promise<ClienteStats> {
-        const clientes = await this.getAll();
-        return {
-            total: clientes.length,
-            activos: clientes.filter(c => c.estaActivo).length,
-            inactivos: clientes.filter(c => !c.estaActivo).length,
-        };
+        const response = await api.get<ClienteStats>(`${CLIENTES_BASE_URL}/stats`);
+        return response.data;
     },
 
     /**

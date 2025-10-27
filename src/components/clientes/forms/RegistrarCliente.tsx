@@ -10,9 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, User, Phone, FileText, Plus, Trash2 } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { DatePicker } from '@/components/ui/date-picker';
+import { ChevronLeft, ChevronRight, User, Phone, FileText, Plus, Trash2, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import ConsultaDocumento from '@/components/clientes/ConsultaDocumento';
 import { DatosPersona, DatosEmpresa } from '@/services/decolecta.service';
+import { clientesService } from '@/services/clientes.service';
+import { contactosClienteService } from '@/services/contactos-cliente.service';
+import type { CreateClienteDto, CreateClienteContactoDto } from '@/types/cliente.interface';
+import { toast } from 'sonner';
+import { useAuthStore } from '@/store/authStore';
 
 // Interfaz para el formulario
 interface ClienteFormData {
@@ -21,6 +28,7 @@ interface ClienteFormData {
   numeroDocumento: string;
   nombres: string;
   apellidos: string;
+  cumpleanos: Date | undefined;
   razonSocial: string;
   telefono1: string;
   telefono2: string;
@@ -33,6 +41,14 @@ interface ClienteFormData {
   departamento: string;
 }
 
+interface ContactoFormData {
+  id: number;
+  nombre: string;
+  cargo: string;
+  telefono: string;
+  correo: string;
+}
+
 const STEPS = [
   { id: 1, title: 'Información Básica', description: 'Datos personales del cliente', icon: User },
   { id: 2, title: 'Contactos Adicionales', description: 'Información de contacto adicional (opcional)', icon: Phone },
@@ -41,8 +57,14 @@ const STEPS = [
 
 export default function RegistrarCliente() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [contactos, setContactos] = useState([{ id: 1, nombre: '', cargo: '', telefono: '', correo: '' }]);
+  const [contactos, setContactos] = useState<ContactoFormData[]>([{ id: 1, nombre: '', cargo: '', telefono: '', correo: '' }]);
   const [documentos, setDocumentos] = useState([{ id: 1, tipoDocumento: '', archivo: null, descripcion: '' }]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // Obtener usuario actual del store de autenticación
+  const { user } = useAuthStore();
 
   // Estado del formulario con react-hook-form
   const { control, register, setValue, watch } = useForm<ClienteFormData>({
@@ -52,6 +74,7 @@ export default function RegistrarCliente() {
       numeroDocumento: '',
       nombres: '',
       apellidos: '',
+      cumpleanos: undefined,
       razonSocial: '',
       telefono1: '',
       telefono2: '',
@@ -114,6 +137,12 @@ export default function RegistrarCliente() {
     }
   };
 
+  const actualizarContacto = (id: number, campo: keyof ContactoFormData, valor: string) => {
+    setContactos(contactos.map(c =>
+      c.id === id ? { ...c, [campo]: valor } : c
+    ));
+  };
+
   const agregarDocumento = () => {
     const nuevoId = Math.max(...documentos.map(d => d.id)) + 1;
     setDocumentos([...documentos, { id: nuevoId, tipoDocumento: '', archivo: null, descripcion: '' }]);
@@ -122,6 +151,93 @@ export default function RegistrarCliente() {
   const eliminarDocumento = (id: number) => {
     if (documentos.length > 1) {
       setDocumentos(documentos.filter(d => d.id !== id));
+    }
+  };
+
+  const actualizarDocumento = (id: number, campo: string, valor: string | File | null) => {
+    setDocumentos(documentos.map(d =>
+      d.id === id ? { ...d, [campo]: valor } : d
+    ));
+  };
+
+  const onSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      // Verificar que el usuario esté autenticado
+      if (!user?.idUsuario) {
+        throw new Error('Usuario no autenticado. Por favor, inicia sesión nuevamente.');
+      }
+
+      // Obtener valores del formulario
+      const formValues = watch();
+
+      // Validar campos requeridos
+      if (!formValues.tipoPersona || !formValues.tipoDocumento || !formValues.numeroDocumento ||
+          !formValues.telefono1 || !formValues.direccion) {
+        throw new Error('Por favor complete todos los campos requeridos marcados con *');
+      }
+
+      // Preparar datos del cliente
+      const clienteData: CreateClienteDto = {
+        tipoPersona: formValues.tipoPersona as 'NATURAL' | 'JURIDICO',
+        tipoDocumento: formValues.tipoDocumento,
+        numeroDocumento: formValues.numeroDocumento,
+        nombres: formValues.nombres || undefined,
+        apellidos: formValues.apellidos || undefined,
+        razonSocial: formValues.razonSocial || undefined,
+        direccion: formValues.direccion,
+        distrito: formValues.distrito || undefined,
+        provincia: formValues.provincia || undefined,
+        departamento: formValues.departamento || undefined,
+        telefono1: formValues.telefono1,
+        telefono2: formValues.telefono2 || undefined,
+        whatsapp: formValues.whatsapp || undefined,
+        emailNotificaciones: formValues.emailNotificaciones || undefined,
+        recibirNotificaciones: formValues.recibirNotificaciones || false,
+        cumpleanos: formValues.cumpleanos ? formValues.cumpleanos.toISOString().split('T')[0] : undefined,
+        asignadoA: user.idUsuario, // Asignar automáticamente al usuario actual
+      };
+
+      // Preparar contactos adicionales si existen
+      const contactosValidos = contactos.filter(c => c.nombre.trim() !== '');
+      const contactosData: CreateClienteContactoDto[] = contactosValidos.map(c => ({
+        nombre: c.nombre,
+        cargo: c.cargo || undefined,
+        telefono: c.telefono || undefined,
+        correo: c.correo || undefined,
+      }));
+
+      console.log('📝 Enviando datos del cliente:', clienteData);
+      console.log('📞 Contactos a crear:', contactosData);
+
+      // Crear cliente con contactos
+      const clienteCreado = await clientesService.create({
+        ...clienteData,
+        contactos: contactosData.length > 0 ? contactosData : undefined,
+      });
+
+      console.log('✅ Cliente creado:', clienteCreado);
+
+      // TODO: Implementar subida de documentos cuando esté disponible
+
+      setSubmitSuccess(true);
+      toast.success('Cliente registrado exitosamente');
+
+      // Resetear formulario después de 2 segundos
+      setTimeout(() => {
+        // Aquí podrías redirigir a la lista de clientes o resetear el formulario
+        window.location.reload();
+      }, 2000);
+
+    } catch (error: any) {
+      console.error('❌ Error al registrar cliente:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Error desconocido al registrar cliente';
+      setSubmitError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -286,6 +402,22 @@ export default function RegistrarCliente() {
           />
         </div>
 
+        {/* Cumpleaños */}
+        <div className="space-y-2">
+          <Label htmlFor="cumpleanos">Cumpleaños</Label>
+          <Controller
+            name="cumpleanos"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                date={field.value}
+                onDateChange={field.onChange}
+                placeholder="Seleccionar fecha de nacimiento"
+              />
+            )}
+          />
+        </div>
+
         {/* Razón Social (solo para jurídico) */}
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="razonSocial">Razón Social</Label>
@@ -348,7 +480,7 @@ export default function RegistrarCliente() {
 
         {/* WhatsApp */}
         <div className="space-y-2">
-          <Label className='text-green-600' htmlFor="whatsapp">WhatsApp</Label>
+          <Label className='text-green-600' htmlFor="whatsapp">WhatsApp <span className='text-black'>(Incluya el código de país)</span></Label>
           <Input
             id="whatsapp"
             placeholder="Ej: +51 925757151"
@@ -423,6 +555,8 @@ export default function RegistrarCliente() {
                   <Input
                     id={`contactoNombre-${contacto.id}`}
                     placeholder="Nombre del contacto"
+                    value={contacto.nombre}
+                    onChange={(e) => actualizarContacto(contacto.id, 'nombre', e.target.value)}
                   />
                 </div>
 
@@ -431,6 +565,8 @@ export default function RegistrarCliente() {
                   <Input
                     id={`contactoCargo-${contacto.id}`}
                     placeholder="Cargo del contacto"
+                    value={contacto.cargo}
+                    onChange={(e) => actualizarContacto(contacto.id, 'cargo', e.target.value)}
                   />
                 </div>
 
@@ -439,6 +575,8 @@ export default function RegistrarCliente() {
                   <Input
                     id={`contactoTelefono-${contacto.id}`}
                     placeholder="Teléfono del contacto"
+                    value={contacto.telefono}
+                    onChange={(e) => actualizarContacto(contacto.id, 'telefono', e.target.value)}
                   />
                 </div>
 
@@ -448,6 +586,8 @@ export default function RegistrarCliente() {
                     id={`contactoCorreo-${contacto.id}`}
                     type="email"
                     placeholder="Correo del contacto"
+                    value={contacto.correo}
+                    onChange={(e) => actualizarContacto(contacto.id, 'correo', e.target.value)}
                   />
                 </div>
               </div>
@@ -507,7 +647,10 @@ export default function RegistrarCliente() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor={`tipoDocumento-${documento.id}`}>Tipo de Documento *</Label>
-                  <Select>
+                  <Select
+                    value={documento.tipoDocumento}
+                    onValueChange={(value) => actualizarDocumento(documento.id, 'tipoDocumento', value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
@@ -529,6 +672,10 @@ export default function RegistrarCliente() {
                     id={`documentoArchivo-${documento.id}`}
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      actualizarDocumento(documento.id, 'archivo', file);
+                    }}
                   />
                 </div>
               </div>
@@ -539,6 +686,8 @@ export default function RegistrarCliente() {
                   id={`documentoDescripcion-${documento.id}`}
                   placeholder="Descripción del documento (opcional)"
                   rows={3}
+                  value={documento.descripcion}
+                  onChange={(e) => actualizarDocumento(documento.id, 'descripcion', e.target.value)}
                 />
               </div>
             </CardContent>
@@ -580,6 +729,40 @@ export default function RegistrarCliente() {
     <div className="max-w-6xl mx-auto">
       {renderStepIndicator()}
 
+      {/* Indicador de éxito */}
+      {submitSuccess && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center">
+            <CheckCircle className="h-5 w-5 text-green-400" />
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-800">
+                ¡Cliente registrado exitosamente!
+              </p>
+              <p className="text-sm text-green-700">
+                Redirigiendo en unos segundos...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Indicador de error */}
+      {submitError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 text-red-400" />
+            <div className="ml-3">
+              <p className="text-sm font-medium text-red-800">
+                Error al registrar cliente
+              </p>
+              <p className="text-sm text-red-700">
+                {submitError}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>{STEPS[currentStep - 1].title}</CardTitle>
@@ -594,18 +777,29 @@ export default function RegistrarCliente() {
         <Button
           variant="outline"
           onClick={prevStep}
-          disabled={currentStep === 1}
+          disabled={currentStep === 1 || isSubmitting}
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
           Anterior
         </Button>
 
         <Button
-          onClick={nextStep}
-          disabled={currentStep === STEPS.length}
+          onClick={currentStep === STEPS.length ? onSubmit : nextStep}
+          disabled={isSubmitting}
         >
-          {currentStep === STEPS.length ? 'Finalizar' : 'Siguiente'}
-          {currentStep !== STEPS.length && <ChevronRight className="w-4 h-4 ml-2" />}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Registrando...
+            </>
+          ) : currentStep === STEPS.length ? (
+            'Finalizar'
+          ) : (
+            <>
+              Siguiente
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </>
+          )}
         </Button>
       </div>
     </div>

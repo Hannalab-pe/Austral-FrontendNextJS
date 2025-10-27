@@ -68,6 +68,8 @@ export interface CreateClienteDto {
     recibirNotificaciones?: boolean;
     cumpleanos?: Date | string;
     idLead?: string;
+    asignadoA?: string;
+    contactos?: CreateClienteContactoDto[];
 }
 
 export interface UpdateClienteDto extends Partial<CreateClienteDto> {
