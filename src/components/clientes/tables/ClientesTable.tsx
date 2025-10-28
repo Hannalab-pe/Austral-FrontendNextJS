@@ -9,17 +9,15 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { useClientes, useDeactivateCliente } from '@/lib/hooks/useClientes';
-import { Eye, Loader2, MessageCircle, Trash2 } from 'lucide-react';
+import { Eye, Loader2, MessageCircle, Trash2, Pencil, Pen } from 'lucide-react';
 import { useState } from 'react';
 
 interface ClientesTableProps {
-  onEdit?: (cliente: Cliente) => void;
   onDelete?: (cliente: Cliente) => void;
   onView?: (cliente: Cliente) => void;
 }
 
 export default function ClientesTable({
-  onEdit,
   onDelete,
   onView,
 }: ClientesTableProps) {
@@ -176,6 +174,7 @@ export default function ClientesTable({
             <Button
               variant="outline"
               size="sm"
+              className="h-8 px-2 text-blue-600 border-blue-300 hover:bg-blue-50"
               onClick={() => router.push(`/vendedor/clientes/${cliente.idCliente}`)}
               title="Ver cliente"
             >
@@ -183,16 +182,15 @@ export default function ClientesTable({
             </Button>
 
             {/* Botón Editar */}
-            {onEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit(cliente)}
-                title="Editar cliente"
-              >
-                ✏️
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2 text-amber-600 border-amber-300 hover:bg-amber-50"
+              onClick={() => router.push(`/vendedor/clientes/${cliente.idCliente}/editar`)}
+              title="Editar cliente"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
 
             {/* Botón Desactivar */}
             <Button
