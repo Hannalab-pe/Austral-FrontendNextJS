@@ -117,7 +117,7 @@ export default function VerCliente() {
                   <div>
                     <label className="text-sm font-medium text-gray-600">Fecha de Nacimiento</label>
                     <p className="text-sm text-gray-900">
-                      {format(new Date(cliente.cumpleanos), 'dd/MM/yyyy', { locale: es })}
+                      {format(cliente.cumpleanos, 'dd/MM/yyyy', { locale: es })}
                     </p>
                   </div>
                 )}

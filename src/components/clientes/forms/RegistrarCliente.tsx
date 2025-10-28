@@ -196,7 +196,7 @@ export default function RegistrarCliente() {
         whatsapp: formValues.whatsapp || undefined,
         emailNotificaciones: formValues.emailNotificaciones || undefined,
         recibirNotificaciones: formValues.recibirNotificaciones || false,
-        cumpleanos: formValues.cumpleanos ? formValues.cumpleanos.toISOString().split('T')[0] : undefined,
+        cumpleanos: formValues.cumpleanos || undefined,
         asignadoA: user.idUsuario, // Asignar automáticamente al usuario actual
       };
 

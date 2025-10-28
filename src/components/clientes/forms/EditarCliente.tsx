@@ -14,7 +14,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { ChevronLeft, ChevronRight, User, Phone, FileText, Plus, Trash2, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useCliente } from '@/lib/hooks/useClientes';
-import type { Cliente, UpdateClienteDto } from '@/types/cliente.interface';
+import { clientesService } from '@/services/clientes.service';
+import { contactosClienteService } from '@/services/contactos-cliente.service';
+import type { Cliente, ClienteContacto, UpdateClienteDto, CreateClienteContactoDto } from '@/types/cliente.interface';
+import { toast } from 'sonner';
 
 // Interfaz para el formulario
 interface ClienteFormData {
@@ -38,6 +41,7 @@ interface ClienteFormData {
 
 interface ContactoFormData {
   id: number;
+  idContacto?: string;
   nombre: string;
   cargo: string;
   telefono: string;
@@ -56,6 +60,7 @@ export default function EditarCliente() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [contactos, setContactos] = useState<ContactoFormData[]>([{ id: 1, nombre: '', cargo: '', telefono: '', correo: '' }]);
+  const [contactosOriginales, setContactosOriginales] = useState<ClienteContacto[]>([]);
   const [documentos, setDocumentos] = useState([{ id: 1, tipoDocumento: '', archivo: null, descripcion: '' }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -107,20 +112,26 @@ export default function EditarCliente() {
       setValue('departamento', cliente.departamento || '');
 
       // Cargar fecha de nacimiento si existe
-      if (cliente.cumpleanos) {
-        setValue('cumpleanos', new Date(cliente.cumpleanos));
+      if (cliente.cumpleanos && typeof cliente.cumpleanos === 'string') {
+        const [year, month, day] = cliente.cumpleanos.split('-').map(Number);
+        setValue('cumpleanos', new Date(year, month - 1, day));
       }
 
       // Cargar contactos si existen
       if (cliente.contactos && cliente.contactos.length > 0) {
+        setContactosOriginales(cliente.contactos);
         const contactosData = cliente.contactos.map((contacto, index) => ({
           id: index + 1,
+          idContacto: contacto.idContacto,
           nombre: contacto.nombre || '',
           cargo: contacto.cargo || '',
           telefono: contacto.telefono || '',
           correo: contacto.correo || '',
         }));
         setContactos(contactosData);
+      } else {
+        setContactosOriginales([]);
+        setContactos([{ id: 1, nombre: '', cargo: '', telefono: '', correo: '' }]);
       }
     }
   }, [cliente, setValue]);
@@ -131,20 +142,108 @@ export default function EditarCliente() {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      // Aquí irá la lógica para actualizar el cliente
-      // Por ahora solo mostramos que se recibió la data
-      console.log('Datos del formulario:', data);
-      console.log('Contactos:', contactos);
+      // Validar campos requeridos
+      if (!data.tipoPersona || !data.tipoDocumento || !data.numeroDocumento ||
+          !data.telefono1 || !data.direccion) {
+        throw new Error('Por favor complete todos los campos requeridos marcados con *');
+      }
 
-      // Simular una actualización exitosa
+      // Preparar datos del cliente
+      const clienteData: UpdateClienteDto = {
+        tipoPersona: data.tipoPersona as 'NATURAL' | 'JURIDICO',
+        tipoDocumento: data.tipoDocumento,
+        numeroDocumento: data.numeroDocumento,
+        nombres: data.nombres || undefined,
+        apellidos: data.apellidos || undefined,
+        razonSocial: data.razonSocial || undefined,
+        direccion: data.direccion,
+        distrito: data.distrito || undefined,
+        provincia: data.provincia || undefined,
+        departamento: data.departamento || undefined,
+        telefono1: data.telefono1,
+        telefono2: data.telefono2 || undefined,
+        whatsapp: data.whatsapp || undefined,
+        emailNotificaciones: data.emailNotificaciones || undefined,
+        recibirNotificaciones: data.recibirNotificaciones || false,
+        cumpleanos: data.cumpleanos || undefined,
+      };
+
+      // Preparar operaciones de contactos
+      const contactosActuales = contactos.filter(c => c.nombre.trim() !== '');
+      const contactosACrear: CreateClienteContactoDto[] = [];
+      const contactosAActualizar: (CreateClienteContactoDto & { idContacto: string })[] = [];
+      const contactosAEliminar: string[] = [];
+
+      // Identificar contactos a crear y actualizar
+      contactosActuales.forEach(contacto => {
+        if (contacto.idContacto) {
+          // Actualizar existente
+          contactosAActualizar.push({
+            idContacto: contacto.idContacto,
+            nombre: contacto.nombre,
+            cargo: contacto.cargo || undefined,
+            telefono: contacto.telefono || undefined,
+            correo: contacto.correo || undefined,
+          });
+        } else {
+          // Crear nuevo
+          contactosACrear.push({
+            nombre: contacto.nombre,
+            cargo: contacto.cargo || undefined,
+            telefono: contacto.telefono || undefined,
+            correo: contacto.correo || undefined,
+          });
+        }
+      });
+
+      // Identificar contactos a eliminar
+      contactosOriginales.forEach(original => {
+        const existe = contactosActuales.some(actual => actual.idContacto === original.idContacto);
+        if (!existe) {
+          contactosAEliminar.push(original.idContacto);
+        }
+      });
+
+      console.log('📝 Actualizando cliente:', clienteData);
+      console.log('➕ Contactos a crear:', contactosACrear);
+      console.log('✏️ Contactos a actualizar:', contactosAActualizar);
+      console.log('🗑️ Contactos a eliminar:', contactosAEliminar);
+
+      // Actualizar cliente
+      await clientesService.update(clienteId, clienteData);
+
+      // Crear nuevos contactos
+      for (const contacto of contactosACrear) {
+        await contactosClienteService.create(clienteId, contacto);
+      }
+
+      // Actualizar contactos existentes
+      for (const contacto of contactosAActualizar) {
+        const { idContacto, ...updateData } = contacto;
+        await contactosClienteService.update(idContacto, updateData);
+      }
+
+      // Eliminar contactos removidos
+      for (const idContacto of contactosAEliminar) {
+        await contactosClienteService.delete(idContacto);
+      }
+
+      console.log('✅ Cliente actualizado exitosamente');
+
+      setSubmitSuccess(true);
+      toast.success('Cliente actualizado exitosamente');
+
+      // Resetear después de 2 segundos
       setTimeout(() => {
-        setSubmitSuccess(true);
-        setIsSubmitting(false);
+        setSubmitSuccess(false);
       }, 2000);
 
     } catch (error: any) {
-      console.error('Error al actualizar cliente:', error);
-      setSubmitError(error.message || 'Error al actualizar el cliente');
+      console.error('❌ Error al actualizar cliente:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Error desconocido al actualizar cliente';
+      setSubmitError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -750,7 +849,7 @@ export default function EditarCliente() {
         </Button>
 
         <Button
-          onClick={currentStep === STEPS.length ? () => {} : nextStep}
+          onClick={currentStep === STEPS.length ? handleSubmit(onSubmit) : nextStep}
           disabled={isSubmitting}
         >
           {isSubmitting ? (

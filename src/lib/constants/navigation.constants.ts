@@ -238,6 +238,18 @@ export const NAVIGATION_CONFIG_BY_ROLE: Record<string, NavigationItem[]> = {
                 },
             ],
         },
+        {
+            title: "IA",
+            url: "#",
+            icon: Bot,
+            items: [
+                {
+                    title: "Generador de Rutas",
+                    url: "/vendedor/generador-rutas",
+                    backendRoute: "/vendedor/generador-rutas",
+                }
+            ]
+        }
     ],
 };
 

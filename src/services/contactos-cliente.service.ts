@@ -19,7 +19,7 @@ export const contactosClienteService = {
      * Crea un nuevo contacto para un cliente
      */
     async create(clienteId: string, data: CreateClienteContactoDto): Promise<ClienteContacto> {
-        const response = await api.post<ClienteContacto>(`${CONTACTOS_BASE_URL}/cliente/${clienteId}`, data);
+        const response = await api.post<ClienteContacto>(`${CONTACTOS_BASE_URL}`, { ...data, idCliente: clienteId });
         return response.data;
     },
 
@@ -27,7 +27,7 @@ export const contactosClienteService = {
      * Actualiza un contacto existente
      */
     async update(contactoId: string, data: Partial<CreateClienteContactoDto>): Promise<ClienteContacto> {
-        const response = await api.put<ClienteContacto>(`${CONTACTOS_BASE_URL}/${contactoId}`, data);
+        const response = await api.patch<ClienteContacto>(`${CONTACTOS_BASE_URL}/${contactoId}`, data);
         return response.data;
     },
 
