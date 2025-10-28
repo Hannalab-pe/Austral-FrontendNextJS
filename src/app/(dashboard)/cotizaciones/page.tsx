@@ -11,6 +11,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 interface CotizacionResult {
@@ -53,6 +60,7 @@ export default function CotizacionesPage() {
     tipoVehiculo: "",
     usoVehiculo: "",
     ubicacion: "",
+    zona_riesgo: "",
     conductorPrincipal: "",
     edadConductor: "",
     historialConducir: "",
@@ -73,36 +81,21 @@ export default function CotizacionesPage() {
 
   const handleCotizar = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:3002/cotizaciones/calcular",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            vehiculo: {
-              marca: formData.marca,
-              modelo: formData.modelo,
-              anio: parseInt(formData.anio),
-              precio: parseFloat(formData.precio),
-              tipo: formData.tipoVehiculo,
-              uso: formData.usoVehiculo,
-            },
-            ubicacion: formData.ubicacion,
-            conductor: {
-              nombre: formData.conductorPrincipal,
-              edad: parseInt(formData.edadConductor),
-              historial: formData.historialConducir,
-            },
-            cobertura: {
-              tipo: formData.coberturaDeseada,
-              deducible: formData.deduciblePreferido,
-            },
-            adicionales: formData.adicionales,
-          }),
-        }
-      );
+      const response = await fetch("http://localhost:3002/cotizaciones/auto", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          marca: formData.marca,
+          modelo: formData.modelo,
+          anio: parseInt(formData.anio) || 0,
+          valor_vehiculo: parseFloat(formData.precio) || 0,
+          tipo_cobertura: formData.coberturaDeseada,
+          zona_riesgo: formData.zona_riesgo || "",
+          antiguedad_licencia: 0,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error("Error al calcular la cotización");
@@ -227,6 +220,25 @@ export default function CotizacionesPage() {
                   onChange={handleInputChange}
                   placeholder="Ej: Buenos Aires, Argentina"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="zona_riesgo">Zona de Riesgo</Label>
+                <Select
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, zona_riesgo: value }))
+                  }
+                  value={formData.zona_riesgo}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccione zona de riesgo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Baja">Baja</SelectItem>
+                    <SelectItem value="Media">Media</SelectItem>
+                    <SelectItem value="Alta">Alta</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

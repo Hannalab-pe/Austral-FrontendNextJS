@@ -13,6 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -150,16 +157,21 @@ export default function CotizarPage() {
 
   const handleCotizar = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:3002/cotizaciones/calcular",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(cotizacionData),
-        }
-      );
+      const response = await fetch("http://localhost:3002/cotizaciones/auto", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          marca: cotizacionData.datos.marca,
+          modelo: cotizacionData.datos.modelo,
+          anio: cotizacionData.datos.anio,
+          valor_vehiculo: cotizacionData.datos.valor_vehiculo,
+          tipo_cobertura: cotizacionData.datos.tipo_cobertura,
+          zona_riesgo: cotizacionData.datos.zona_riesgo,
+          antiguedad_licencia: cotizacionData.datos.antiguedad_licencia,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error("Error al enviar la cotización");
@@ -660,19 +672,27 @@ export default function CotizarPage() {
                         </div>
                         <div>
                           <Label htmlFor="zona_riesgo">Zona de Riesgo</Label>
-                          <Input
-                            id="zona_riesgo"
-                            value={cotizacionData.datos.zona_riesgo}
-                            onChange={(e) =>
+                          <Select
+                            onValueChange={(value) =>
                               setCotizacionData({
                                 ...cotizacionData,
                                 datos: {
                                   ...cotizacionData.datos,
-                                  zona_riesgo: e.target.value,
+                                  zona_riesgo: value,
                                 },
                               })
                             }
-                          />
+                            value={cotizacionData.datos.zona_riesgo}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Seleccione zona de riesgo..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Baja">Baja</SelectItem>
+                              <SelectItem value="Media">Media</SelectItem>
+                              <SelectItem value="Alta">Alta</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div>
                           <Label htmlFor="antiguedad_licencia">
@@ -715,7 +735,9 @@ export default function CotizarPage() {
         <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
           <DialogContent className="w-[95vw] max-w-[1600px] max-h-[90vh] overflow-y-auto p-8">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Resultado de la Cotización</DialogTitle>
+              <DialogTitle className="text-2xl font-bold">
+                Resultado de la Cotización
+              </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-6">
               {cotizacionResult && (
@@ -723,12 +745,16 @@ export default function CotizarPage() {
                   {/* Información del Vehículo Base */}
                   <Card className="h-full">
                     <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
-                      <CardTitle className="text-lg font-bold text-blue-900">Vehículo Base</CardTitle>
+                      <CardTitle className="text-lg font-bold text-blue-900">
+                        Vehículo Base
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6">
                       <div className="grid grid-cols-2 gap-6">
                         <div>
-                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">Marca</Label>
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Marca
+                          </Label>
                           <p className="text-base font-medium text-gray-900">
                             {cotizacionResult.vehiculoBase?.marca || "N/A"}
                           </p>
@@ -742,7 +768,9 @@ export default function CotizarPage() {
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">Año</Label>
+                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Año
+                          </Label>
                           <p className="text-base font-medium text-gray-900">
                             {cotizacionResult.vehiculoBase?.anio || "N/A"}
                           </p>
@@ -764,7 +792,9 @@ export default function CotizarPage() {
                   {/* Información de Primas */}
                   <Card className="h-full">
                     <CardHeader className="bg-gradient-to-r from-green-50 to-green-100">
-                      <CardTitle className="text-lg font-bold text-green-900">Información de Primas</CardTitle>
+                      <CardTitle className="text-lg font-bold text-green-900">
+                        Información de Primas
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6">
                       <div className="grid grid-cols-2 gap-6">
@@ -813,7 +843,9 @@ export default function CotizarPage() {
                   {/* Información Adicional */}
                   <Card className="lg:col-span-2">
                     <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
-                      <CardTitle className="text-lg font-bold text-gray-900">Información Adicional</CardTitle>
+                      <CardTitle className="text-lg font-bold text-gray-900">
+                        Información Adicional
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -842,7 +874,9 @@ export default function CotizarPage() {
                   {/* Coberturas */}
                   <Card className="h-full">
                     <CardHeader className="bg-gradient-to-r from-green-50 to-green-100">
-                      <CardTitle className="text-lg font-bold text-green-900">Coberturas Incluidas</CardTitle>
+                      <CardTitle className="text-lg font-bold text-green-900">
+                        Coberturas Incluidas
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -865,7 +899,9 @@ export default function CotizarPage() {
                   {/* Deducibles */}
                   <Card className="h-full">
                     <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
-                      <CardTitle className="text-lg font-bold text-blue-900">Deducibles Disponibles</CardTitle>
+                      <CardTitle className="text-lg font-bold text-blue-900">
+                        Deducibles Disponibles
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6">
                       <div className="flex flex-wrap gap-4">
@@ -888,7 +924,9 @@ export default function CotizarPage() {
                   {/* Garantías Requeridas */}
                   <Card className="lg:col-span-2">
                     <CardHeader className="bg-gradient-to-r from-yellow-50 to-yellow-100">
-                      <CardTitle className="text-lg font-bold text-yellow-900">Garantías Requeridas</CardTitle>
+                      <CardTitle className="text-lg font-bold text-yellow-900">
+                        Garantías Requeridas
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6">
                       <div className="flex flex-wrap gap-4">
