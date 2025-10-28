@@ -1,31 +1,41 @@
-'use client';
+"use client";
 
-import { ColumnDef } from '@tanstack/react-table';
-import { Cliente } from '@/types/cliente.interface';
-import { Button } from '@/components/ui/button';
-import DataTable from '@/components/common/DataTable';
-import ConfirmDialog from '@/components/common/ConfirmDialog';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { useRouter } from 'next/navigation';
-import { useClientes, useDeactivateCliente } from '@/lib/hooks/useClientes';
-import { Eye, Loader2, MessageCircle, Trash2, FileText } from 'lucide-react';
-import { useState } from 'react';
+import { ColumnDef } from "@tanstack/react-table";
+import { Cliente } from "@/types/cliente.interface";
+import { Button } from "@/components/ui/button";
+import DataTable from "@/components/common/DataTable";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { useRouter } from "next/navigation";
+import { useClientes, useDeactivateCliente } from "@/lib/hooks/useClientes";
+import {
+  Eye,
+  Loader2,
+  MessageCircle,
+  Trash2,
+  FileText,
+  Pencil,
+} from "lucide-react";
+import { useState } from "react";
 
 interface ClientesTableProps {
-  onEdit?: (cliente: Cliente) => void;
   onDelete?: (cliente: Cliente) => void;
   onView?: (cliente: Cliente) => void;
 }
 
 export default function ClientesTable({
-  onEdit,
   onDelete,
   onView,
 }: ClientesTableProps) {
   const router = useRouter();
   // Usar el hook de TanStack Query para obtener clientes
-  const { data: clientes, isLoading, isError, error } = useClientes({
+  const {
+    data: clientes,
+    isLoading,
+    isError,
+    error,
+  } = useClientes({
     esta_activo: true, // Solo clientes activos por defecto
   });
 
@@ -57,17 +67,17 @@ export default function ClientesTable({
 
   const columns: ColumnDef<Cliente>[] = [
     {
-      accessorKey: 'fechaRegistro',
-      header: 'Fecha de Registro',
+      accessorKey: "fechaRegistro",
+      header: "Fecha de Registro",
       cell: ({ row }) => {
         const fecha = row.original.fechaRegistro;
         if (!fecha) return <span className="text-xs text-gray-400">-</span>;
 
         try {
-          const fechaDate = typeof fecha === 'string' ? new Date(fecha) : fecha;
+          const fechaDate = typeof fecha === "string" ? new Date(fecha) : fecha;
           return (
             <div className="text-sm">
-              {format(fechaDate, 'dd/MM/yyyy', { locale: es })}
+              {format(fechaDate, "dd/MM/yyyy", { locale: es })}
             </div>
           );
         } catch {
@@ -76,60 +86,49 @@ export default function ClientesTable({
       },
     },
     {
-      accessorKey: 'razonSocial',
-      header: 'Nombre o Razón Social',
+      accessorKey: "razonSocial",
+      header: "Nombre o Razón Social",
       cell: ({ row }) => {
         const cliente = row.original;
-        const nombre = cliente.tipoPersona === 'NATURAL'
-          ? `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim()
-          : cliente.razonSocial || '';
+        const nombre =
+          cliente.tipoPersona === "NATURAL"
+            ? `${cliente.nombres || ""} ${cliente.apellidos || ""}`.trim()
+            : cliente.razonSocial || "";
 
-        return (
-          <div className="text-sm">
-            {nombre || 'Sin información'}
-          </div>
-        );
+        return <div className="text-sm">{nombre || "Sin información"}</div>;
       },
     },
     {
-      accessorKey: 'tipoDocumento',
-      header: 'T. de Documento',
+      accessorKey: "tipoDocumento",
+      header: "T. de Documento",
       cell: ({ row }) => (
-        <div className="text-sm">
-          {row.original.tipoDocumento}
-        </div>
+        <div className="text-sm">{row.original.tipoDocumento}</div>
       ),
     },
     {
-      accessorKey: 'numeroDocumento',
-      header: 'N. Documento',
+      accessorKey: "numeroDocumento",
+      header: "N. Documento",
       cell: ({ row }) => (
-        <div className="text-sm font-mono">
-          {row.original.numeroDocumento}
-        </div>
+        <div className="text-sm font-mono">{row.original.numeroDocumento}</div>
       ),
     },
     {
-      accessorKey: 'telefono1',
-      header: 'Teléfono',
+      accessorKey: "telefono1",
+      header: "Teléfono",
       cell: ({ row }) => (
-        <div className="text-sm text-blue-600">
-          {row.original.telefono1}
-        </div>
+        <div className="text-sm text-blue-600">{row.original.telefono1}</div>
       ),
     },
     {
-      accessorKey: 'emailNotificaciones',
-      header: 'Email',
+      accessorKey: "emailNotificaciones",
+      header: "Email",
       cell: ({ row }) => (
-        <div className="text-sm">
-          {row.original.emailNotificaciones || '-'}
-        </div>
+        <div className="text-sm">{row.original.emailNotificaciones || "-"}</div>
       ),
     },
     {
-      accessorKey: 'direccion',
-      header: 'Dirección',
+      accessorKey: "direccion",
+      header: "Dirección",
       cell: ({ row }) => {
         const direccion = [
           row.original.direccion,
@@ -138,18 +137,18 @@ export default function ClientesTable({
           row.original.departamento,
         ]
           .filter(Boolean)
-          .join(', ');
+          .join(", ");
 
         return (
           <div className="max-w-xs truncate text-sm" title={direccion}>
-            {direccion || '-'}
+            {direccion || "-"}
           </div>
         );
       },
     },
     {
-      id: 'actions',
-      header: 'Acciones',
+      id: "actions",
+      header: "Acciones",
       cell: ({ row }) => {
         const cliente = row.original;
 
@@ -162,9 +161,12 @@ export default function ClientesTable({
                 size="sm"
                 className="h-8 px-2 text-green-600 border-green-300 hover:bg-green-50"
                 onClick={() => {
-                  const cleanNumber = cliente.whatsapp!.replace(/[\s\-\(\)]/g, '');
+                  const cleanNumber = cliente.whatsapp!.replace(
+                    /[\s\-\(\)]/g,
+                    ""
+                  );
                   const whatsappUrl = `https://wa.me/${cleanNumber}`;
-                  window.open(whatsappUrl, '_blank');
+                  window.open(whatsappUrl, "_blank");
                 }}
                 title="Contactar por WhatsApp"
               >
@@ -176,7 +178,10 @@ export default function ClientesTable({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push(`/vendedor/clientes/${cliente.idCliente}`)}
+              className="h-8 px-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+              onClick={() =>
+                router.push(`/vendedor/clientes/${cliente.idCliente}`)
+              }
               title="Ver cliente"
             >
               <Eye className="h-4 w-4" />
@@ -187,23 +192,26 @@ export default function ClientesTable({
               variant="outline"
               size="sm"
               className="h-8 px-2 text-blue-600 border-blue-300 hover:bg-blue-50"
-              onClick={() => router.push(`/vendedor/polizas/${cliente.idCliente}`)}
+              onClick={() =>
+                router.push(`/vendedor/polizas/${cliente.idCliente}`)
+              }
               title="Ver/Crear pólizas"
             >
               <FileText className="h-4 w-4" />
             </Button>
 
             {/* Botón Editar */}
-            {onEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit(cliente)}
-                title="Editar cliente"
-              >
-                ✏️
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2 text-amber-600 border-amber-300 hover:bg-amber-50"
+              onClick={() =>
+                router.push(`/vendedor/clientes/${cliente.idCliente}/editar`)
+              }
+              title="Editar cliente"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
 
             {/* Botón Desactivar */}
             <Button
@@ -237,8 +245,12 @@ export default function ClientesTable({
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="text-red-500 text-lg font-semibold mb-2">Error al cargar clientes</div>
-          <div className="text-gray-600">{error?.message || 'Error desconocido'}</div>
+          <div className="text-red-500 text-lg font-semibold mb-2">
+            Error al cargar clientes
+          </div>
+          <div className="text-gray-600">
+            {error?.message || "Error desconocido"}
+          </div>
         </div>
       </div>
     );
@@ -248,8 +260,12 @@ export default function ClientesTable({
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="text-gray-500 text-lg mb-2">No hay clientes asignados</div>
-          <div className="text-gray-400">No se encontraron clientes asignados a tu cuenta.</div>
+          <div className="text-gray-500 text-lg mb-2">
+            No hay clientes asignados
+          </div>
+          <div className="text-gray-400">
+            No se encontraron clientes asignados a tu cuenta.
+          </div>
         </div>
       </div>
     );

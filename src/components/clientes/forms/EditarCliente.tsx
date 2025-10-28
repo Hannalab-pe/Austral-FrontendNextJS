@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,18 +9,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { ChevronLeft, ChevronRight, User, Phone, FileText, Plus, Trash2, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import ConsultaDocumento from '@/components/clientes/ConsultaDocumento';
-import { DatosPersona, DatosEmpresa } from '@/services/decolecta.service';
+import { useCliente } from '@/lib/hooks/useClientes';
 import { clientesService } from '@/services/clientes.service';
 import { contactosClienteService } from '@/services/contactos-cliente.service';
-import type { CreateClienteDto, CreateClienteContactoDto } from '@/types/cliente.interface';
+import type { Cliente, ClienteContacto, UpdateClienteDto, CreateClienteContactoDto } from '@/types/cliente.interface';
 import { toast } from 'sonner';
-import { useAuthStore } from '@/store/authStore';
 
 // Interfaz para el formulario
 interface ClienteFormData {
@@ -43,6 +41,7 @@ interface ClienteFormData {
 
 interface ContactoFormData {
   id: number;
+  idContacto?: string;
   nombre: string;
   cargo: string;
   telefono: string;
@@ -55,19 +54,23 @@ const STEPS = [
   { id: 3, title: 'Documentos', description: 'Archivos y documentos (opcional)', icon: FileText },
 ];
 
-export default function RegistrarCliente() {
+export default function EditarCliente() {
+  const params = useParams();
+  const clienteId = params.id as string;
+
   const [currentStep, setCurrentStep] = useState(1);
   const [contactos, setContactos] = useState<ContactoFormData[]>([{ id: 1, nombre: '', cargo: '', telefono: '', correo: '' }]);
+  const [contactosOriginales, setContactosOriginales] = useState<ClienteContacto[]>([]);
   const [documentos, setDocumentos] = useState([{ id: 1, tipoDocumento: '', archivo: null, descripcion: '' }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  // Obtener usuario actual del store de autenticación
-  const { user } = useAuthStore();
+  // Obtener datos del cliente
+  const { data: cliente, isLoading, isError, error } = useCliente(clienteId);
 
   // Estado del formulario con react-hook-form
-  const { control, register, setValue, watch } = useForm<ClienteFormData>({
+  const { control, register, setValue, watch, handleSubmit } = useForm<ClienteFormData>({
     defaultValues: {
       tipoPersona: '',
       tipoDocumento: '',
@@ -88,32 +91,164 @@ export default function RegistrarCliente() {
     },
   });
 
-  // Estado para datos encontrados por API
-  const [datosEncontrados, setDatosEncontrados] = useState<DatosPersona | DatosEmpresa | null>(null);
+  // Cargar datos del cliente en el formulario cuando se obtengan
+  useEffect(() => {
+    if (cliente) {
+      // Cargar datos básicos
+      setValue('tipoPersona', cliente.tipoPersona || '');
+      setValue('tipoDocumento', cliente.tipoDocumento || '');
+      setValue('numeroDocumento', cliente.numeroDocumento || '');
+      setValue('nombres', cliente.nombres || '');
+      setValue('apellidos', cliente.apellidos || '');
+      setValue('razonSocial', cliente.razonSocial || '');
+      setValue('telefono1', cliente.telefono1 || '');
+      setValue('telefono2', cliente.telefono2 || '');
+      setValue('whatsapp', cliente.whatsapp || '');
+      setValue('emailNotificaciones', cliente.emailNotificaciones || '');
+      setValue('recibirNotificaciones', cliente.recibirNotificaciones || false);
+      setValue('direccion', cliente.direccion || '');
+      setValue('distrito', cliente.distrito || '');
+      setValue('provincia', cliente.provincia || '');
+      setValue('departamento', cliente.departamento || '');
 
-  // Función para manejar datos encontrados por la API
-  const handleDatosEncontrados = (datos: DatosPersona | DatosEmpresa | null) => {
-    setDatosEncontrados(datos);
+      // Cargar fecha de nacimiento si existe
+      if (cliente.cumpleanos && typeof cliente.cumpleanos === 'string') {
+        const [year, month, day] = cliente.cumpleanos.split('-').map(Number);
+        setValue('cumpleanos', new Date(year, month - 1, day));
+      }
 
-    // Auto-llenar campos según el tipo de datos
-    if (datos && 'nombres' in datos) {
-      // Es una persona natural
-      setValue('tipoPersona', 'NATURAL');
-      setValue('nombres', datos.nombres);
-      setValue('apellidos', datos.apellidos);
-      if (datos.direccion) {
-        setValue('direccion', datos.direccion);
+      // Cargar contactos si existen
+      if (cliente.contactos && cliente.contactos.length > 0) {
+        setContactosOriginales(cliente.contactos);
+        const contactosData = cliente.contactos.map((contacto, index) => ({
+          id: index + 1,
+          idContacto: contacto.idContacto,
+          nombre: contacto.nombre || '',
+          cargo: contacto.cargo || '',
+          telefono: contacto.telefono || '',
+          correo: contacto.correo || '',
+        }));
+        setContactos(contactosData);
+      } else {
+        setContactosOriginales([]);
+        setContactos([{ id: 1, nombre: '', cargo: '', telefono: '', correo: '' }]);
       }
-    } else if (datos && 'razonSocial' in datos) {
-      // Es una empresa
-      setValue('tipoPersona', 'JURIDICO');
-      setValue('razonSocial', datos.razonSocial);
-      if (datos.direccion) {
-        setValue('direccion', datos.direccion);
+    }
+  }, [cliente, setValue]);
+
+  // Función para manejar el envío del formulario
+  const onSubmit = async (data: ClienteFormData) => {
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      // Validar campos requeridos
+      if (!data.tipoPersona || !data.tipoDocumento || !data.numeroDocumento ||
+          !data.telefono1 || !data.direccion) {
+        throw new Error('Por favor complete todos los campos requeridos marcados con *');
       }
+
+      // Preparar datos del cliente
+      const clienteData: UpdateClienteDto = {
+        tipoPersona: data.tipoPersona as 'NATURAL' | 'JURIDICO',
+        tipoDocumento: data.tipoDocumento,
+        numeroDocumento: data.numeroDocumento,
+        nombres: data.nombres || undefined,
+        apellidos: data.apellidos || undefined,
+        razonSocial: data.razonSocial || undefined,
+        direccion: data.direccion,
+        distrito: data.distrito || undefined,
+        provincia: data.provincia || undefined,
+        departamento: data.departamento || undefined,
+        telefono1: data.telefono1,
+        telefono2: data.telefono2 || undefined,
+        whatsapp: data.whatsapp || undefined,
+        emailNotificaciones: data.emailNotificaciones || undefined,
+        recibirNotificaciones: data.recibirNotificaciones || false,
+        cumpleanos: data.cumpleanos || undefined,
+      };
+
+      // Preparar operaciones de contactos
+      const contactosActuales = contactos.filter(c => c.nombre.trim() !== '');
+      const contactosACrear: CreateClienteContactoDto[] = [];
+      const contactosAActualizar: (CreateClienteContactoDto & { idContacto: string })[] = [];
+      const contactosAEliminar: string[] = [];
+
+      // Identificar contactos a crear y actualizar
+      contactosActuales.forEach(contacto => {
+        if (contacto.idContacto) {
+          // Actualizar existente
+          contactosAActualizar.push({
+            idContacto: contacto.idContacto,
+            nombre: contacto.nombre,
+            cargo: contacto.cargo || undefined,
+            telefono: contacto.telefono || undefined,
+            correo: contacto.correo || undefined,
+          });
+        } else {
+          // Crear nuevo
+          contactosACrear.push({
+            nombre: contacto.nombre,
+            cargo: contacto.cargo || undefined,
+            telefono: contacto.telefono || undefined,
+            correo: contacto.correo || undefined,
+          });
+        }
+      });
+
+      // Identificar contactos a eliminar
+      contactosOriginales.forEach(original => {
+        const existe = contactosActuales.some(actual => actual.idContacto === original.idContacto);
+        if (!existe) {
+          contactosAEliminar.push(original.idContacto);
+        }
+      });
+
+      console.log('📝 Actualizando cliente:', clienteData);
+      console.log('➕ Contactos a crear:', contactosACrear);
+      console.log('✏️ Contactos a actualizar:', contactosAActualizar);
+      console.log('🗑️ Contactos a eliminar:', contactosAEliminar);
+
+      // Actualizar cliente
+      await clientesService.update(clienteId, clienteData);
+
+      // Crear nuevos contactos
+      for (const contacto of contactosACrear) {
+        await contactosClienteService.create(clienteId, contacto);
+      }
+
+      // Actualizar contactos existentes
+      for (const contacto of contactosAActualizar) {
+        const { idContacto, ...updateData } = contacto;
+        await contactosClienteService.update(idContacto, updateData);
+      }
+
+      // Eliminar contactos removidos
+      for (const idContacto of contactosAEliminar) {
+        await contactosClienteService.delete(idContacto);
+      }
+
+      console.log('✅ Cliente actualizado exitosamente');
+
+      setSubmitSuccess(true);
+      toast.success('Cliente actualizado exitosamente');
+
+      // Resetear después de 2 segundos
+      setTimeout(() => {
+        setSubmitSuccess(false);
+      }, 2000);
+
+    } catch (error: any) {
+      console.error('❌ Error al actualizar cliente:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Error desconocido al actualizar cliente';
+      setSubmitError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // Funciones para navegación entre pasos
   const nextStep = () => {
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
@@ -126,23 +261,25 @@ export default function RegistrarCliente() {
     }
   };
 
-  const agregarContacto = () => {
-    const nuevoId = Math.max(...contactos.map(c => c.id)) + 1;
-    setContactos([...contactos, { id: nuevoId, nombre: '', cargo: '', telefono: '', correo: '' }]);
+  // Funciones para manejar contactos
+  const addContacto = () => {
+    const newId = Math.max(...contactos.map(c => c.id)) + 1;
+    setContactos([...contactos, { id: newId, nombre: '', cargo: '', telefono: '', correo: '' }]);
   };
 
-  const eliminarContacto = (id: number) => {
+  const removeContacto = (id: number) => {
     if (contactos.length > 1) {
       setContactos(contactos.filter(c => c.id !== id));
     }
   };
 
-  const actualizarContacto = (id: number, campo: keyof ContactoFormData, valor: string) => {
+  const updateContacto = (id: number, field: keyof ContactoFormData, value: string) => {
     setContactos(contactos.map(c =>
-      c.id === id ? { ...c, [campo]: valor } : c
+      c.id === id ? { ...c, [field]: value } : c
     ));
   };
 
+  // Funciones para manejar documentos
   const agregarDocumento = () => {
     const nuevoId = Math.max(...documentos.map(d => d.id)) + 1;
     setDocumentos([...documentos, { id: nuevoId, tipoDocumento: '', archivo: null, descripcion: '' }]);
@@ -154,91 +291,10 @@ export default function RegistrarCliente() {
     }
   };
 
-  const actualizarDocumento = (id: number, campo: string, valor: string | File | null) => {
+    const actualizarDocumento = (id: number, campo: string, valor: string | File | null) => {
     setDocumentos(documentos.map(d =>
       d.id === id ? { ...d, [campo]: valor } : d
     ));
-  };
-
-  const onSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      setSubmitError(null);
-
-      // Verificar que el usuario esté autenticado
-      if (!user?.idUsuario) {
-        throw new Error('Usuario no autenticado. Por favor, inicia sesión nuevamente.');
-      }
-
-      // Obtener valores del formulario
-      const formValues = watch();
-
-      // Validar campos requeridos
-      if (!formValues.tipoPersona || !formValues.tipoDocumento || !formValues.numeroDocumento ||
-          !formValues.telefono1 || !formValues.direccion) {
-        throw new Error('Por favor complete todos los campos requeridos marcados con *');
-      }
-
-      // Preparar datos del cliente
-      const clienteData: CreateClienteDto = {
-        tipoPersona: formValues.tipoPersona as 'NATURAL' | 'JURIDICO',
-        tipoDocumento: formValues.tipoDocumento,
-        numeroDocumento: formValues.numeroDocumento,
-        nombres: formValues.nombres || undefined,
-        apellidos: formValues.apellidos || undefined,
-        razonSocial: formValues.razonSocial || undefined,
-        direccion: formValues.direccion,
-        distrito: formValues.distrito || undefined,
-        provincia: formValues.provincia || undefined,
-        departamento: formValues.departamento || undefined,
-        telefono1: formValues.telefono1,
-        telefono2: formValues.telefono2 || undefined,
-        whatsapp: formValues.whatsapp || undefined,
-        emailNotificaciones: formValues.emailNotificaciones || undefined,
-        recibirNotificaciones: formValues.recibirNotificaciones || false,
-        cumpleanos: formValues.cumpleanos || undefined,
-        asignadoA: user.idUsuario, // Asignar automáticamente al usuario actual
-      };
-
-      // Preparar contactos adicionales si existen
-      const contactosValidos = contactos.filter(c => c.nombre.trim() !== '');
-      const contactosData: CreateClienteContactoDto[] = contactosValidos.map(c => ({
-        nombre: c.nombre,
-        cargo: c.cargo || undefined,
-        telefono: c.telefono || undefined,
-        correo: c.correo || undefined,
-      }));
-
-      console.log('📝 Enviando datos del cliente:', clienteData);
-      console.log('📞 Contactos a crear:', contactosData);
-
-      // Crear cliente con contactos
-      const clienteCreado = await clientesService.create({
-        ...clienteData,
-        contactos: contactosData.length > 0 ? contactosData : undefined,
-      });
-
-      console.log('✅ Cliente creado:', clienteCreado);
-
-      // TODO: Implementar subida de documentos cuando esté disponible
-
-      setSubmitSuccess(true);
-      toast.success('Cliente registrado exitosamente');
-
-      // Resetear formulario después de 2 segundos
-      setTimeout(() => {
-        // Aquí podrías redirigir a la lista de clientes o resetear el formulario
-        window.location.reload();
-      }, 2000);
-
-    } catch (error: any) {
-      console.error('❌ Error al registrar cliente:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Error desconocido al registrar cliente';
-      setSubmitError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const renderStepIndicator = () => (
@@ -284,37 +340,57 @@ export default function RegistrarCliente() {
     </div>
   );
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
+          <div className="text-gray-600">Cargando información del cliente...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-red-500 text-lg font-semibold mb-2">Error al cargar cliente</div>
+          <div className="text-gray-600">{error?.message || 'Error desconocido'}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Not found state
+  if (!cliente) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-gray-500 text-lg mb-2">Cliente no encontrado</div>
+          <div className="text-gray-400">El cliente solicitado no existe o no tienes permisos para editarlo.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return renderStep1();
+      case 2:
+        return renderStep2();
+      case 3:
+        return renderStep3();
+      default:
+        return renderStep1();
+    }
+  };
+
   const renderStep1 = () => (
     <div className="space-y-6">
-      {/* Componente de consulta de documento */}
-      <ConsultaDocumento
-        tipoDocumento={watch('tipoDocumento') as 'DNI' | 'RUC'}
-        numeroDocumento={watch('numeroDocumento')}
-        onNumeroDocumentoChange={(numero) => setValue('numeroDocumento', numero)}
-        onDatosEncontrados={handleDatosEncontrados}
-      />
-
-      {/* Indicador de datos encontrados */}
-      {datosEncontrados && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-green-800">
-                Datos encontrados automáticamente
-              </p>
-              <p className="text-sm text-green-700">
-                Los campos han sido completados con la información obtenida de la consulta.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Tipo de Persona */}
         <div className="space-y-2">
@@ -329,7 +405,7 @@ export default function RegistrarCliente() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="NATURAL">Persona Natural</SelectItem>
-                  <SelectItem value="JURIDICO">Persona Jurídica</SelectItem>
+                  <SelectItem value="JURIDICA">Persona Jurídica</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -541,7 +617,7 @@ export default function RegistrarCliente() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => eliminarContacto(contacto.id)}
+                  onClick={() => removeContacto(contacto.id)}
                   className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -556,7 +632,7 @@ export default function RegistrarCliente() {
                     id={`contactoNombre-${contacto.id}`}
                     placeholder="Nombre del contacto"
                     value={contacto.nombre}
-                    onChange={(e) => actualizarContacto(contacto.id, 'nombre', e.target.value)}
+                    onChange={(e) => updateContacto(contacto.id, 'nombre', e.target.value)}
                   />
                 </div>
 
@@ -566,7 +642,7 @@ export default function RegistrarCliente() {
                     id={`contactoCargo-${contacto.id}`}
                     placeholder="Cargo del contacto"
                     value={contacto.cargo}
-                    onChange={(e) => actualizarContacto(contacto.id, 'cargo', e.target.value)}
+                    onChange={(e) => updateContacto(contacto.id, 'cargo', e.target.value)}
                   />
                 </div>
 
@@ -576,7 +652,7 @@ export default function RegistrarCliente() {
                     id={`contactoTelefono-${contacto.id}`}
                     placeholder="Teléfono del contacto"
                     value={contacto.telefono}
-                    onChange={(e) => actualizarContacto(contacto.id, 'telefono', e.target.value)}
+                    onChange={(e) => updateContacto(contacto.id, 'telefono', e.target.value)}
                   />
                 </div>
 
@@ -587,7 +663,7 @@ export default function RegistrarCliente() {
                     type="email"
                     placeholder="Correo del contacto"
                     value={contacto.correo}
-                    onChange={(e) => actualizarContacto(contacto.id, 'correo', e.target.value)}
+                    onChange={(e) => updateContacto(contacto.id, 'correo', e.target.value)}
                   />
                 </div>
               </div>
@@ -599,7 +675,7 @@ export default function RegistrarCliente() {
       <div className="flex justify-center">
         <Button
           variant="outline"
-          onClick={agregarContacto}
+          onClick={addContacto}
           className="flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -712,18 +788,7 @@ export default function RegistrarCliente() {
     </div>
   );
 
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        return renderStep1();
-      case 2:
-        return renderStep2();
-      case 3:
-        return renderStep3();
-      default:
-        return renderStep1();
-    }
-  };
+  const watchedTipoPersona = watch('tipoPersona');
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -736,7 +801,7 @@ export default function RegistrarCliente() {
             <CheckCircle className="h-5 w-5 text-green-400" />
             <div className="ml-3">
               <p className="text-sm font-medium text-green-800">
-                ¡Cliente registrado exitosamente!
+                ¡Cliente actualizado exitosamente!
               </p>
               <p className="text-sm text-green-700">
                 Redirigiendo en unos segundos...
@@ -753,7 +818,7 @@ export default function RegistrarCliente() {
             <AlertCircle className="h-5 w-5 text-red-400" />
             <div className="ml-3">
               <p className="text-sm font-medium text-red-800">
-                Error al registrar cliente
+                Error al actualizar cliente
               </p>
               <p className="text-sm text-red-700">
                 {submitError}
@@ -784,13 +849,13 @@ export default function RegistrarCliente() {
         </Button>
 
         <Button
-          onClick={currentStep === STEPS.length ? onSubmit : nextStep}
+          onClick={currentStep === STEPS.length ? handleSubmit(onSubmit) : nextStep}
           disabled={isSubmitting}
         >
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Registrando...
+              Actualizando...
             </>
           ) : currentStep === STEPS.length ? (
             'Finalizar'
