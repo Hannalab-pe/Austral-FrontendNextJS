@@ -41,7 +41,8 @@ export function NavMain({
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive}
+            // defaultOpen={item.isActive} si queremos abrir solo el activo
+            defaultOpen={true} // Abrir todos los menús por defecto
             className="group/collapsible"
           >
             <SidebarMenuItem>

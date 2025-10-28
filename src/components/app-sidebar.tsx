@@ -11,6 +11,7 @@ import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
+import Image from "next/image"
 import {
   Sidebar,
   SidebarContent,
@@ -82,7 +83,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} className="bg-gradient-to-b from-[#0a2342] via-[#163e6c] to-[#274472] text-white">
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
