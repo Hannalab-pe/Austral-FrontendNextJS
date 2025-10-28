@@ -1,57 +1,111 @@
 export interface Cliente {
-    id_cliente: string;
-    nombre: string;
-    apellido: string;
-    email: string;
-    telefono: string;
-    telefono_secundario?: string;
-    documento_identidad: string;
-    tipo_documento: TipoDocumento;
-    fecha_nacimiento: Date | string;
+    idCliente: string;
+    tipoPersona: 'NATURAL' | 'JURIDICO';
+    razonSocial?: string;
+    nombres?: string;
+    apellidos?: string;
+    tipoDocumento: string;
+    numeroDocumento: string;
     direccion: string;
     distrito?: string;
     provincia?: string;
     departamento?: string;
-    ocupacion?: string;
-    empresa?: string;
-    estado_civil?: EstadoCivil;
-    contacto_emergencia_nombre?: string;
-    contacto_emergencia_telefono?: string;
-    contacto_emergencia_relacion?: string;
-    esta_activo: boolean;
-    fecha_registro: Date | string;
-    id_lead?: string;
-    broker_asignado?: string;
-    broker_nombre?: string; // Para mostrar en la tabla
+    telefono1: string;
+    telefono2?: string;
+    whatsapp?: string;
+    emailNotificaciones?: string;
+    recibirNotificaciones: boolean;
+    cumpleanos?: Date | string;
+    estaActivo: boolean;
+    fechaRegistro: Date | string;
+    idLead?: string;
+    asignadoA?: string;
+    registradoPor?: string;
+    // Relaciones
+    contactos?: ClienteContacto[];
+    documentos?: ClienteDocumento[];
+    // Campos calculados para UI
+    nombreCompleto?: string;
+    asignadoANombre?: string;
+    registradoPorNombre?: string;
 }
 
-export type TipoDocumento = 'DNI' | 'CE' | 'PASAPORTE' | 'RUC';
+export interface ClienteContacto {
+    idContacto: string;
+    idCliente: string;
+    nombre: string;
+    cargo?: string;
+    telefono?: string;
+    correo?: string;
+    fechaCreacion: Date | string;
+}
 
-export type EstadoCivil = 'SOLTERO' | 'CASADO' | 'DIVORCIADO' | 'VIUDO' | 'CONVIVIENTE';
+export interface ClienteDocumento {
+    idDocumento: string;
+    idCliente: string;
+    tipoDocumento: string;
+    urlArchivo: string;
+    descripcion?: string;
+    fechaSubida: Date | string;
+    subidoPor: string;
+}
 
 export interface CreateClienteDto {
-    nombre: string;
-    apellido: string;
-    email: string;
-    telefono: string;
-    telefono_secundario?: string;
-    documento_identidad: string;
-    tipo_documento: TipoDocumento;
-    fecha_nacimiento: Date | string;
+    tipoPersona: 'NATURAL' | 'JURIDICO';
+    razonSocial?: string;
+    nombres?: string;
+    apellidos?: string;
+    tipoDocumento: string;
+    numeroDocumento: string;
     direccion: string;
     distrito?: string;
     provincia?: string;
     departamento?: string;
-    ocupacion?: string;
-    empresa?: string;
-    estado_civil?: EstadoCivil;
-    contacto_emergencia_nombre?: string;
-    contacto_emergencia_telefono?: string;
-    contacto_emergencia_relacion?: string;
-    id_lead?: string;
-    broker_asignado?: string;
+    telefono1: string;
+    telefono2?: string;
+    whatsapp?: string;
+    emailNotificaciones?: string;
+    recibirNotificaciones?: boolean;
+    cumpleanos?: Date | string;
+    idLead?: string;
+    asignadoA?: string;
+    contactos?: CreateClienteContactoDto[];
 }
 
 export interface UpdateClienteDto extends Partial<CreateClienteDto> {
-    esta_activo?: boolean;
+    estaActivo?: boolean;
+}
+
+export interface CreateClienteContactoDto {
+    nombre: string;
+    cargo?: string;
+    telefono?: string;
+    correo?: string;
+}
+
+export interface CreateClienteDocumentoDto {
+    tipoDocumento: string;
+    urlArchivo: string;
+    descripcion?: string;
+}
+
+export interface ClienteFiltros {
+    estaActivo?: boolean;
+    brokerAsignado?: string;
+    registradoPor?: string;
+    search?: string;
+}
+
+export interface ClientePaginado {
+    data: Cliente[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface ClienteStats {
+    total: number;
+    activos: number;
+    inactivos: number;
 }

@@ -11,6 +11,21 @@ import {
 
 export const usuariosService = {
     /**
+     * Crea un nuevo usuario (con validaciones de jerarquía en el backend)
+     */
+    async create(data: CreateUsuarioDto): Promise<Usuario> {
+        try {
+            const response = await apiClient.post<Usuario>('/usuarios', data);
+            return response.data;
+        } catch (error: unknown) {
+            const message = error instanceof Error && 'response' in error
+                ? (error as any).response?.data?.message
+                : 'Error al crear usuario';
+            throw new Error(message);
+        }
+    },
+
+    /**
      * Obtiene todos los usuarios con filtros opcionales
      */
     async getAll(filtros?: UsuarioFiltros): Promise<Usuario[]> {

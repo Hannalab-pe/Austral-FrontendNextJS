@@ -22,7 +22,7 @@ export default function ProtectedRoute({
   children,
   requiredRoute,
   allowedRoles,
-  redirectTo = '/auth/login',
+  redirectTo = '/login',
   fallbackPath,
 }: ProtectedRouteProps) {
   const router = useRouter();

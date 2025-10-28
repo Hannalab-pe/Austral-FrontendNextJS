@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { authService } from '@/services/auth.service';
 import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -25,7 +26,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, isLoading, isAuthenticated } = useAuth();
+  const { login, isLoading, isAuthenticated, getDefaultRoute } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -61,10 +62,43 @@ export default function LoginForm() {
   // Redirigir si ya está autenticado
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      const from = searchParams.get('from') || '/clientes';
-      router.push(from);
+      try {
+        const defaultRoute = getDefaultRoute();
+        const from = searchParams.get('from') || defaultRoute;
+        router.push(from);
+      } catch (error) {
+        console.error('Error al obtener ruta por defecto:', error);
+        // Si hay error con getDefaultRoute, intentar con el token directamente
+        const token = localStorage.getItem('auth-token');
+        if (token) {
+          const decoded = authService.decodeToken(token);
+          if (decoded && decoded.rol?.nombre) {
+            const roleName = decoded.rol.nombre.toLowerCase();
+            let fallbackRoute: string;
+
+            switch (roleName) {
+              case 'administrador':
+              case 'admin':
+                fallbackRoute = '/admin/dashboard';
+                break;
+              case 'broker':
+              case 'brokers':
+                fallbackRoute = '/broker/dashboard';
+                break;
+              case 'vendedor':
+                fallbackRoute = '/vendedor/actividades';
+                break;
+            default:
+              console.error('Rol desconocido en token:', roleName);
+              return; // No redirigir si el rol es desconocido
+            }
+
+            router.push(fallbackRoute);
+          }
+        }
+      }
     }
-  }, [isAuthenticated, isLoading, router, searchParams]);
+  }, [isAuthenticated, isLoading, router, searchParams, getDefaultRoute]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -73,12 +107,50 @@ export default function LoginForm() {
         contrasena: data.contrasena,
       });
 
-      // El toast de éxito y la redirección se manejan en el store
-      const from = searchParams.get('from') || '/clientes';
-      router.push(from);
+            // Obtener la ruta directamente del token JWT
+      const token = localStorage.getItem('auth-token');
+      if (token) {
+        const decoded = authService.decodeToken(token);
+        if (decoded && decoded.rol?.nombre) {
+          const roleName = decoded.rol.nombre.toLowerCase();
+          let defaultRoute: string;
+
+          switch (roleName) {
+            case 'administrador':
+              defaultRoute = '/admin/dashboard';
+              break;
+            case 'admin':
+              defaultRoute = '/admin/dashboard';
+              break;
+            case 'broker':
+              defaultRoute = '/broker/dashboard';
+              break;
+            case 'brokers':
+              defaultRoute = '/broker/dashboard';
+              break;
+            case 'vendedor':
+              defaultRoute = '/vendedor/actividades';
+              break;
+            default:
+              console.error('LoginForm - Rol no reconocido:', roleName, 'Rol original:', decoded.rol.nombre);
+              throw new Error(`Rol desconocido: "${decoded.rol.nombre}"`);
+          }
+
+          const from = searchParams.get('from') || defaultRoute;
+          router.push(from);
+        } else {
+          console.error('LoginForm - No se pudo obtener el rol del token:', decoded);
+          throw new Error('No se pudo obtener el rol del token');
+        }
+      } else {
+        throw new Error('No se encontró el token de autenticación');
+      }
     } catch (error) {
-      // El error ya se maneja en el store con toast
       console.error('Error en login:', error);
+      // Mostrar error al usuario
+      toast.error('Error al iniciar sesión', {
+        description: error instanceof Error ? error.message : 'Error desconocido',
+      });
     }
   };
 

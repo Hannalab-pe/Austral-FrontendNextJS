@@ -303,8 +303,6 @@ export default function AuditoriaClient() {
                     <TableHead>Usuario</TableHead>
                     <TableHead>Tabla</TableHead>
                     <TableHead>Acción</TableHead>
-                    <TableHead>ID Registro</TableHead>
-                    <TableHead>IP</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -336,12 +334,6 @@ export default function AuditoriaClient() {
                         <Badge className={getAccionColor(registro.accion)}>
                           {registro.accion}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {registro.idRegistro}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {registro.ipAddress || '-'}
                       </TableCell>
                     </TableRow>
                   ))}

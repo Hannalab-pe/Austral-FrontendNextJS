@@ -7,6 +7,7 @@ import { ApiError } from '@/types/auth.interface';
 
 const AUTH_SERVICE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const LEADS_SERVICE_URL = process.env.NEXT_PUBLIC_LEADS_SERVICE_URL || 'http://localhost:3002';
+const CLIENTS_SERVICE_URL = process.env.NEXT_PUBLIC_CLIENTS_SERVICE_URL || 'http://localhost:3003';
 const PRODUCTS_SERVICE_URL = process.env.NEXT_PUBLIC_PRODUCTOS_SERVICE_URL || 'http://localhost:3004';
 const ACTIVITIES_SERVICE_URL = process.env.NEXT_PUBLIC_ACTIVITIES_SERVICE_URL || 'http://localhost:3005';
 const AGENTE_RUTAS_API_URL = process.env.NEXT_PUBLIC_AGENTE_RUTAS_API_URL || 'https://agenterutas.up.railway.app';
@@ -80,6 +81,12 @@ export const apiClient: AxiosInstance = createAxiosInstance(AUTH_SERVICE_URL);
  * Usado para: leads, estados de leads, fuentes de leads
  */
 export const leadsClient: AxiosInstance = createAxiosInstance(LEADS_SERVICE_URL);
+
+/**
+ * Cliente para Clients Service (puerto 3003)
+ * Usado para: gestión de clientes
+ */
+export const clientsClient: AxiosInstance = createAxiosInstance(CLIENTS_SERVICE_URL);
 
 /**
  * Cliente para Products Service (puerto 3004)

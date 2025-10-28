@@ -8,6 +8,17 @@ import {
     DollarSign,
     Users,
     Bot,
+    UserCheck,
+    FileText,
+    Bell,
+    User,
+    Building,
+    Quote,
+    Calculator,
+    TrendingUp,
+    AlertTriangle,
+    CheckSquare,
+    MessageSquare,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
@@ -27,7 +38,210 @@ export interface NavigationSubItem {
     backendRoute?: string; // Ruta que se verifica en el backend
 }
 
-// Configuración de navegación organizada por secciones
+// Configuración de navegación por rol
+export const NAVIGATION_CONFIG_BY_ROLE: Record<string, NavigationItem[]> = {
+    admin: [
+        {
+            title: "Dashboard",
+            url: "/admin/dashboard",
+            icon: LayoutDashboard,
+            isActive: true,
+            backendRoute: "/admin/dashboard",
+        },
+        {
+            title: "Ventas",
+            url: "#",
+            icon: DollarSign,
+            items: [
+                {
+                    title: "Leads",
+                    url: "/admin/leads",
+                    backendRoute: "/admin/leads",
+                },
+                {
+                    title: "Clientes",
+                    url: "/admin/clientes",
+                    backendRoute: "/admin/clientes",
+                },
+            ],
+        },
+        {
+            title: "Pólizas",
+            url: "#",
+            icon: Shield,
+            items: [
+                {
+                    title: "Ver Pólizas",
+                    url: "/admin/polizas",
+                    backendRoute: "/admin/polizas",
+                },
+                {
+                    title: "Siniestros",
+                    url: "/admin/siniestros",
+                    backendRoute: "/admin/siniestros",
+                },
+                {
+                    title: "Cotizaciones",
+                    url: "/admin/cotizaciones",
+                    backendRoute: "/admin/cotizaciones",
+                },
+                {
+                    title: "Cotizar",
+                    url: "/admin/cotizar",
+                    backendRoute: "/admin/cotizar",
+                },
+            ],
+        },
+        {
+            title: "Gestión",
+            url: "#",
+            icon: ClipboardList,
+            items: [
+                {
+                    title: "Actividades",
+                    url: "/admin/actividades",
+                    backendRoute: "/admin/actividades",
+                },
+                {
+                    title: "Notificaciones",
+                    url: "/admin/notificaciones",
+                    backendRoute: "/admin/notificaciones",
+                },
+                {
+                    title: "Solicitudes",
+                    url: "/admin/solicitudes",
+                    backendRoute: "/admin/solicitudes",
+                },
+            ],
+        },
+        {
+            title: "Finanzas",
+            url: "#",
+            icon: BarChart3,
+            items: [
+                {
+                    title: "Reportes",
+                    url: "/admin/reportes",
+                    backendRoute: "/admin/reportes",
+                },
+            ],
+        },
+        {
+            title: "Configuración",
+            url: "#",
+            icon: Settings,
+            items: [
+                {
+                    title: "General",
+                    url: "/admin/configuracion",
+                    backendRoute: "/admin/configuracion",
+                },
+                {
+                    title: "Usuarios",
+                    url: "/admin/usuarios",
+                    backendRoute: "/admin/usuarios",
+                },
+                {
+                    title: "Auditoría",
+                    url: "/admin/auditoria",
+                    backendRoute: "/admin/auditoria",
+                },
+                {
+                    title: "Compañías",
+                    url: "/admin/companias",
+                    backendRoute: "/admin/companias",
+                },
+                {
+                    title: "Mi Perfil",
+                    url: "/admin/perfil",
+                    backendRoute: "/admin/perfil",
+                },
+            ],
+        },
+    ],
+    broker: [
+        {
+            title: "Dashboard",
+            url: "/broker/dashboard",
+            icon: LayoutDashboard,
+            isActive: true,
+            backendRoute: "/broker/dashboard",
+        },
+        {
+            title: "Gestión",
+            url: "#",
+            icon: ClipboardList,
+            items: [
+                {
+                    title: "Actividades",
+                    url: "/broker/actividades",
+                    backendRoute: "/broker/actividades",
+                },
+                {
+                    title: "Clientes",
+                    url: "/broker/clientes",
+                    backendRoute: "/broker/clientes",
+                },
+                {
+                    title: "Notificaciones",
+                    url: "/broker/notificaciones",
+                    backendRoute: "/broker/notificaciones",
+                },
+                {
+                    title: "Solicitudes",
+                    url: "/broker/solicitudes",
+                    backendRoute: "/broker/solicitudes",
+                },
+                {
+                    title: "Vendedores",
+                    url: "/broker/vendedores",
+                    backendRoute: "/broker/vendedores",
+                },
+                {
+                    title: "Mi Perfil",
+                    url: "/broker/perfil",
+                    backendRoute: "/broker/perfil",
+                },
+            ],
+        },
+    ],
+    vendedor: [
+        {
+            title: "Gestión",
+            url: "#",
+            icon: ClipboardList,
+            items: [
+                {
+                    title: "Actividades",
+                    url: "/vendedor/actividades",
+                    backendRoute: "/vendedor/actividades",
+                },
+                {
+                    title: "Clientes",
+                    url: "/vendedor/clientes",
+                    backendRoute: "/vendedor/clientes",
+                },
+                {
+                    title: "Notificaciones",
+                    url: "/vendedor/notificaciones",
+                    backendRoute: "/vendedor/notificaciones",
+                },
+                {
+                    title: "Pólizas",
+                    url: "/vendedor/polizas",
+                    backendRoute: "/vendedor/polizas",
+                },
+                {
+                    title: "Mi Perfil",
+                    url: "/vendedor/perfil",
+                    backendRoute: "/vendedor/perfil",
+                },
+            ],
+        },
+    ],
+};
+
+// Configuración de navegación antigua (mantener por compatibilidad)
 export const NAVIGATION_CONFIG: NavigationItem[] = [
     {
         title: "Dashboard",
@@ -55,6 +269,23 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
                 title: "Asociados",
                 url: "/asociados",
                 backendRoute: "/asociados",
+            },
+        ],
+    },
+    {
+        title: "Broker",
+        url: "#",
+        icon: UserCheck,
+        items: [
+            {
+                title: "Dashboard",
+                url: "/brokers",
+                backendRoute: "/brokers",
+            },
+            {
+                title: "Mis Vendedores",
+                url: "/brokers/vendedores",
+                backendRoute: "/brokers/vendedores",
             },
         ],
     },
@@ -102,18 +333,6 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
             },
         ],
     },
-    // {
-    //     title: "Agentes",
-    //     url: "/agentes",
-    //     icon: Users,
-    //     items: [
-    //         {
-    //             title: "Agente",
-    //             url: "/agentes/",
-    //             backendRoute: "/agentes",
-    //         },
-    //     ],
-    // },
     {
         title: "Finanzas",
         url: "#",
@@ -195,7 +414,25 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
             },
         ],
     },
-];// Función para filtrar navegación basada en permisos
+];// Función para obtener la configuración de navegación basada en el rol
+export const getNavigationConfigByRole = (roleName: string): NavigationItem[] => {
+    // Normalizar el nombre del rol a minúsculas
+    const normalizedRole = roleName.toLowerCase();
+
+    // Mapeo de nombres de rol a clave de configuración
+    const roleMapping: Record<string, string> = {
+        'administrador': 'admin',
+        'admin': 'admin',
+        'broker': 'broker',
+        'brokers': 'broker',
+        'vendedor': 'vendedor',
+    };
+
+    const roleKey = roleMapping[normalizedRole] || 'vendedor'; // Default a vendedor si no coincide
+    return NAVIGATION_CONFIG_BY_ROLE[roleKey] || [];
+};
+
+// Función para filtrar navegación basada en permisos
 export const filterNavigationByPermissions = (
     navigationConfig: NavigationItem[],
     allowedRoutes: string[]

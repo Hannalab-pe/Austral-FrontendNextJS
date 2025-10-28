@@ -1,38 +1,28 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Tipo para el payload del JWT
+interface JWTPayload {
+    exp?: number;
+    iat?: number;
+    [key: string]: unknown;
+}
+
 // Rutas que requieren autenticación
 const protectedRoutes = [
-    '/agentes',
-    '/auditoria',
-    '/clientes',
-    '/leads',
-    '/polizas',
-    '/siniestros',
-    '/tareas',
-    '/actividades',
-    '/notificaciones',
-    '/reportes',
-    '/comisiones',
-    '/peticiones',
-    '/usuarios',
-    '/asociados',
-    '/configuracion',
-    '/perfil',
-    '/companias',
+    '/admin/dashboard',
+    '/broker/dashboard',
+    '/vendedor/dashboard',
 ];
 
-// Rutas de autenticación (públicas)
-const authRoutes = ['/auth/login', '/auth/forgot-password', '/auth/register'];
-
 // Rutas públicas que no requieren autenticación
-const publicRoutes = ['/auth/login', '/auth/forgot-password', '/auth/register'];
+const publicRoutes = ['/login', '/forgot-password', '/register'];
 
 /**
  * Decodificar token JWT sin validar firma
  * Solo para extraer información en el middleware
  */
-function decodeToken(token: string): any {
+function decodeToken(token: string): JWTPayload | null {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -43,7 +33,7 @@ function decodeToken(token: string): any {
                 .join('')
         );
         return JSON.parse(jsonPayload);
-    } catch (error) {
+    } catch {
         return null;
     }
 }
@@ -58,7 +48,7 @@ function isTokenExpired(token: string): boolean {
 
         const currentTime = Date.now() / 1000;
         return decoded.exp < currentTime;
-    } catch (error) {
+    } catch {
         return true;
     }
 }
@@ -71,21 +61,20 @@ export function middleware(request: NextRequest) {
 
     // Verificar si la ruta es protegida
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
     // Si está en una ruta protegida
     if (isProtectedRoute) {
         // Sin token, redirigir a login
         if (!token) {
-            const loginUrl = new URL('/auth/login', request.url);
+            const loginUrl = new URL('/login', request.url);
             loginUrl.searchParams.set('from', pathname);
             return NextResponse.redirect(loginUrl);
         }
 
         // Verificar si el token ha expirado
         if (isTokenExpired(token)) {
-            const loginUrl = new URL('/auth/login', request.url);
+            const loginUrl = new URL('/login', request.url);
             loginUrl.searchParams.set('from', pathname);
             loginUrl.searchParams.set('expired', 'true');
 
@@ -95,41 +84,17 @@ export function middleware(request: NextRequest) {
             return response;
         }
 
-        // Decodificar token para obtener información del usuario
-        const decoded = decodeToken(token);
-
-        if (!decoded) {
-            const loginUrl = new URL('/auth/login', request.url);
-            return NextResponse.redirect(loginUrl);
-        }
-
-        // Aquí puedes agregar validación de roles específicos por ruta
-        // Por ejemplo:
-        // if (pathname.startsWith('/usuarios') && decoded.id_rol !== 'admin-role-id') {
-        //     return NextResponse.redirect(new URL('/unauthorized', request.url));
-        // }
-
-        // Agregar headers con información del usuario para uso en el cliente
-        const response = NextResponse.next();
-        response.headers.set('x-user-id', decoded.sub);
-        response.headers.set('x-user-role', decoded.id_rol);
-        return response;
+        // Token válido, permitir acceso
+        return NextResponse.next();
     }
 
-    // Si está en una ruta de autenticación y ya está autenticado
-    if (isAuthRoute && token && !isTokenExpired(token)) {
-        return NextResponse.redirect(new URL('/clientes', request.url));
+    // Si está en una ruta pública y tiene token válido, permitir acceso
+    if (isPublicRoute && token && !isTokenExpired(token)) {
+        // Permitir que el frontend maneje la redirección
+        return NextResponse.next();
     }
 
-    // Redirigir root según estado de autenticación
-    if (pathname === '/') {
-        if (token && !isTokenExpired(token)) {
-            return NextResponse.redirect(new URL('/clientes', request.url));
-        } else {
-            return NextResponse.redirect(new URL('/auth/login', request.url));
-        }
-    }
-
+    // Para cualquier otra ruta, continuar normalmente
     return NextResponse.next();
 }
 

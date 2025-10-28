@@ -1,30 +1,42 @@
 /**
- * Interfaces y tipos para el módulo de Leads
+ * Interfaces y t// Fuente Lead
+export interface FuenteLead {
+    idFuente: string;
+    nombre: string;
+    descripcion?: string;
+    tipo?: string;
+    estaActivo: boolean;
+    fechaCreacion: string;
+}
+
+// Lead principal de Leads
  * Basado en el esquema de base de datos
  */
+
+import { Usuario } from './usuario.interface';
 
 // Enums
 export type Prioridad = 'ALTA' | 'MEDIA' | 'BAJA';
 
 // Estado Lead
 export interface EstadoLead {
-    id_estado: string;
+    idEstado: string;
     nombre: string;
     descripcion?: string;
-    color_hex: string;
-    orden_proceso: number;
-    es_estado_final: boolean;
-    esta_activo: boolean;
+    colorHex: string;
+    ordenProceso: number;
+    esEstadoFinal: boolean;
+    estaActivo: boolean;
 }
 
 // Fuente Lead
 export interface FuenteLead {
-    id_fuente: string;
+    idFuente: string;
     nombre: string;
     descripcion?: string;
     tipo?: string;
-    esta_activo: boolean;
-    fecha_creacion: string;
+    estaActivo: boolean;
+    fechaCreacion: string;
 }
 
 // Usuario básico (para asignación)
@@ -37,30 +49,30 @@ export interface UsuarioBasico {
 
 // Lead principal
 export interface Lead {
-    id_lead: string;
+    idLead: string;
     nombre: string;
     apellido?: string;
     email?: string;
     telefono: string;
-    fecha_nacimiento?: string;
-    tipo_seguro_interes?: string;
-    presupuesto_aproximado?: number;
+    fechaNacimiento?: string;
+    tipoSeguroInteres?: string;
+    presupuestoAproximado?: number;
     notas?: string;
-    puntaje_calificacion: number;
+    puntajeCalificacion: number;
     prioridad: Prioridad;
-    fecha_primer_contacto: string;
-    fecha_ultimo_contacto?: string;
-    proxima_fecha_seguimiento?: string;
-    id_estado: string;
-    id_fuente: string;
-    asignado_a_usuario?: string;
-    esta_activo: boolean;
-    fecha_creacion: string;
+    fechaPrimerContacto: string;
+    fechaUltimoContacto?: string;
+    proximaFechaSeguimiento?: string;
+    idEstado: string;
+    idFuente: string;
+    asignadoAUsuario?: string;
+    estaActivo: boolean;
+    fechaCreacion: string;
 
     // Relaciones expandidas (opcionales)
     estado?: EstadoLead;
     fuente?: FuenteLead;
-    usuario_asignado?: UsuarioBasico;
+    usuarioAsignado?: Usuario;
 }
 
 // DTOs
@@ -69,20 +81,20 @@ export interface CreateLeadDto {
     apellido?: string;
     email?: string;
     telefono: string;
-    fecha_nacimiento?: string;
-    tipo_seguro_interes?: string;
-    presupuesto_aproximado?: number;
+    fechaNacimiento?: string;
+    tipoSeguroInteres?: string;
+    presupuestoAproximado?: number;
     notas?: string;
-    puntaje_calificacion?: number;
+    puntajeCalificacion?: number;
     prioridad: Prioridad;
-    proxima_fecha_seguimiento?: string;
-    id_estado: string;
-    id_fuente: string;
-    asignado_a_usuario?: string;
+    proximaFechaSeguimiento?: string;
+    idEstado: string;
+    idFuente: string;
+    asignadoAUsuario?: string;
 }
 
 export interface UpdateLeadDto extends Partial<CreateLeadDto> {
-    id_lead: string;
+    idLead: string;
 }
 
 // Para el Kanban
@@ -98,31 +110,31 @@ export interface LeadFilters {
     busqueda?: string;
     prioridad?: Prioridad[];
     fuente?: string[];
-    usuario_asignado?: string[];
-    fecha_desde?: string;
-    fecha_hasta?: string;
+    usuarioAsignado?: string[];
+    fechaDesde?: string;
+    fechaHasta?: string;
 }
 
 // Estadísticas de leads
 export interface LeadStats {
     total: number;
-    por_estado: Record<string, number>;
-    por_prioridad: Record<Prioridad, number>;
-    conversion_rate: number;
-    leads_sin_asignar: number;
+    porEstado: Record<string, number>;
+    porPrioridad: Record<Prioridad, number>;
+    conversionRate: number;
+    leadsSinAsignar: number;
 }
 
 // DTOs para EstadoLead
 export interface CreateEstadoLeadDto {
     nombre: string;
     descripcion?: string;
-    color_hex: string;
-    orden_proceso: number;
-    es_estado_final: boolean;
+    colorHex: string;
+    ordenProceso: number;
+    esEstadoFinal: boolean;
 }
 
 export interface UpdateEstadoLeadDto extends Partial<CreateEstadoLeadDto> {
-    esta_activo?: boolean;
+    estaActivo?: boolean;
 }
 
 // DTOs para FuenteLead
@@ -133,5 +145,5 @@ export interface CreateFuenteLeadDto {
 }
 
 export interface UpdateFuenteLeadDto extends Partial<CreateFuenteLeadDto> {
-    esta_activo?: boolean;
+    estaActivo?: boolean;
 }

@@ -6,6 +6,9 @@ import {
     ChangePasswordDto,
     AuthResponse,
     UserProfile,
+    CreateVendedorDto,
+    CreateVendedorResponse,
+    JwtPayload,
 } from '@/types/auth.interface';
 
 /**
@@ -73,6 +76,21 @@ export const authService = {
     },
 
     /**
+     * Crear vendedor (solo para Brokers)
+     */
+    async createVendedor(data: CreateVendedorDto): Promise<CreateVendedorResponse> {
+        try {
+            const response = await apiClient.post<CreateVendedorResponse>('/auth/create-vendedor', data);
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                throw new Error(error.response.data.message || 'Error al crear vendedor');
+            }
+            throw new Error('Error de conexión con el servidor');
+        }
+    },
+
+    /**
      * Validar token actual
      */
     async validateToken(): Promise<boolean> {
@@ -88,7 +106,7 @@ export const authService = {
      * Decodificar token JWT (sin validar firma)
      * Solo para uso en el cliente para extraer información
      */
-    decodeToken(token: string): any {
+    decodeToken(token: string): JwtPayload | null {
         try {
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');

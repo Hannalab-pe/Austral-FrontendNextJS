@@ -3,6 +3,8 @@
  * Basado en el backend auth-service
  */
 
+import { Rol } from './usuario.interface';
+
 // DTOs de Login y Registro
 export interface LoginDto {
     usuario: string; // Puede ser email o nombre de usuario
@@ -25,6 +27,17 @@ export interface ChangePasswordDto {
     contrasenaNueva: string;
 }
 
+export interface CreateVendedorDto {
+    nombreUsuario: string;
+    email: string;
+    contrasena: string;
+    nombre: string;
+    apellido: string;
+    telefono?: string;
+    documentoIdentidad?: string;
+    porcentajeComision: number;
+}
+
 // Usuario (info básica)
 export interface User {
     idUsuario: string;
@@ -39,17 +52,27 @@ export interface User {
 export interface UserProfile extends User {
     telefono?: string;
     documentoIdentidad?: string;
-    idAsociado?: string;
-    supervisorId?: string;
     estaActivo: boolean;
     ultimoAcceso?: string;
     fechaCreacion: string;
+    rol?: Rol;
 }
 
 // Respuesta de autenticación
 export interface AuthResponse {
     access_token: string;
     user: User;
+}
+
+// Respuesta de crear vendedor
+export interface CreateVendedorResponse {
+    vendedor: User;
+    brokerVendedor: {
+        idBroker: string;
+        idVendedor: string;
+        porcentajeComision: number;
+        fechaAsignacion: string;
+    };
 }
 
 // Payload del JWT decodificado
@@ -59,6 +82,11 @@ export interface JwtPayload {
     nombreUsuario: string;
     nombreCompleto: string;
     idRol: string;
+    rol?: {
+        idRol: string;
+        nombre: string;
+        descripcion?: string;
+    };
     iat?: number; // issued at
     exp?: number; // expiration
 }

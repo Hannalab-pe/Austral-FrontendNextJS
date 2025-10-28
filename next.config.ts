@@ -33,6 +33,11 @@ const nextConfig: NextConfig = {
         destination:
           "https://austral-backendnestjs-production.up.railway.app/fuentes-lead/:path*",
       },
+      // Proxy para API de Decolecta (evita CORS)
+      {
+        source: "/proxy/decolecta/:path*",
+        destination: "https://api.decolecta.com/:path*",
+      },
     ];
   },
 };

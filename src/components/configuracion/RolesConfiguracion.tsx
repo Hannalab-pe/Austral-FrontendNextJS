@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Rol } from '@/types/usuario.interface';
 import { useVistas, useVistasByRol, useAssignVistaToRol, useUnassignVistaFromRol } from '@/lib/hooks/useVistas';
-import { toast } from 'sonner';
 
 interface RolesConfiguracionProps {
   rol: Rol;
@@ -74,7 +73,7 @@ export default function RolesConfiguracion({ rol }: RolesConfiguracionProps) {
           Configuración de {rol.nombre}
         </CardTitle>
         <CardDescription>
-          Gestiona las vistas y permisos de acceso para el rol "{rol.nombre}"
+          Gestiona las vistas y permisos de acceso para el rol &quot;{rol.nombre}&quot;
         </CardDescription>
       </CardHeader>
       <CardContent>
