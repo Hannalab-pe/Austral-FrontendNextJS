@@ -86,12 +86,12 @@ export function ActividadesCalendario({ className }: ActividadesCalendarioProps)
 
   // Manejar clic en evento para editar
   const handleEventClick = (event: ActividadCalendario) => {
-    router.push(`/actividades/${event.id}/editar`);
+    router.push(`/admin/actividades/${event.id}/editar`);
   };
 
   // Manejar clic en botón nueva actividad
   const handleNuevaActividad = () => {
-    router.push('/actividades/nuevo');
+    router.push('/admin/actividades/nuevo');
   };
 
   // Componente personalizado para los eventos en el calendario
