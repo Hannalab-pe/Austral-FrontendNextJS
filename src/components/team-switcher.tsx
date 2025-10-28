@@ -30,7 +30,7 @@ export function TeamSwitcher({
           size="lg"
           className="pointer-events-none"
         >
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+          <div className="bg-blue-600 text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
             <activeTeam.logo className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">

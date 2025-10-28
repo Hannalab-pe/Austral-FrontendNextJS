@@ -94,7 +94,7 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+            {/* <DropdownMenuGroup>
               <DropdownMenuItem onClick={handleGoToProfile} className="cursor-pointer">
                 <BadgeCheck />
                 Mi Perfil
@@ -104,7 +104,7 @@ export function NavUser() {
                 Notificaciones
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator /> */}
             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
               <LogOut />
               Cerrar Sesión
