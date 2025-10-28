@@ -65,7 +65,7 @@ export const authService = {
      */
     async changePassword(data: ChangePasswordDto): Promise<{ message: string }> {
         try {
-            const response = await apiClient.post('/auth/change-password', data);
+            const response = await apiClient.patch('/auth/change-password', data);
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {

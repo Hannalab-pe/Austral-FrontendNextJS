@@ -9,6 +9,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 import { useActividadesByUsuario } from '@/lib/hooks/useActividades';
 import { useAuthStore } from '@/store/authStore';
+import { authService } from '@/services/auth.service';
 import {
   Actividad,
   ActividadCalendario,
@@ -54,12 +55,27 @@ interface ActividadesCalendarioProps {
 
 export function ActividadesCalendario({ className }: ActividadesCalendarioProps) {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const [currentView, setCurrentView] = useState<View>(Views.MONTH);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Obtener actividades del usuario actual
   const { data: actividades, isLoading, error } = useActividadesByUsuario(user?.idUsuario || '');
+
+  // Determinar el prefijo de ruta según el rol del usuario
+  const rolePrefix = useMemo(() => {
+    // Intentar obtener el rol desde el token JWT
+    if (token) {
+      const decoded = authService.decodeToken(token);
+      if (decoded?.rol?.nombre) {
+        const rolNombre = decoded.rol.nombre.toLowerCase();
+        if (rolNombre === 'administrador' || rolNombre === 'admin') return 'admin';
+        if (rolNombre === 'broker') return 'broker';
+        if (rolNombre === 'vendedor') return 'vendedor';
+      }
+    }
+    return 'admin'; // default
+  }, [token]);
 
   // Convertir actividades al formato del calendario
   const eventosCalendario: ActividadCalendario[] = useMemo(() => {
@@ -86,12 +102,12 @@ export function ActividadesCalendario({ className }: ActividadesCalendarioProps)
 
   // Manejar clic en evento para editar
   const handleEventClick = (event: ActividadCalendario) => {
-    router.push(`/admin/actividades/${event.id}/editar`);
+    router.push(`/${rolePrefix}/actividades/${event.id}/editar`);
   };
 
   // Manejar clic en botón nueva actividad
   const handleNuevaActividad = () => {
-    router.push('/admin/actividades/nuevo');
+    router.push(`/${rolePrefix}/actividades/nuevo`);
   };
 
   // Componente personalizado para los eventos en el calendario

@@ -69,14 +69,14 @@ export default function EditarActividadPage() {
       {
         onSuccess: () => {
           // Redirigir al calendario de actividades después de actualizar
-            router.push("/admin/actividades");
+          router.push("/vendedor/actividades");
         },
       }
     );
   };
 
   const handleCancel = () => {
-    router.push("/admin/actividades");
+    router.push("/vendedor/actividades");
   };
 
   // Preparar los datos iniciales para el formulario

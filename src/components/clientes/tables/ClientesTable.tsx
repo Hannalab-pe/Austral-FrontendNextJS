@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { useClientes, useDeactivateCliente } from '@/lib/hooks/useClientes';
-import { Eye, Loader2, MessageCircle, Trash2 } from 'lucide-react';
+import { Eye, Loader2, MessageCircle, Trash2, FileText } from 'lucide-react';
 import { useState } from 'react';
 
 interface ClientesTableProps {
@@ -180,6 +180,17 @@ export default function ClientesTable({
               title="Ver cliente"
             >
               <Eye className="h-4 w-4" />
+            </Button>
+
+            {/* Botón Crear Póliza */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+              onClick={() => router.push(`/vendedor/polizas/${cliente.idCliente}`)}
+              title="Ver/Crear pólizas"
+            >
+              <FileText className="h-4 w-4" />
             </Button>
 
             {/* Botón Editar */}

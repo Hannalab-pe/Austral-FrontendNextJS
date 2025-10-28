@@ -37,13 +37,13 @@ export default function NuevaActividadPage() {
     createActividad.mutate(actividadData, {
       onSuccess: () => {
         // Redirigir al calendario de actividades después de crear
-          router.push("/admin/actividades");
+        router.push("/broker/actividades");
       },
     });
   };
 
   const handleCancel = () => {
-    router.push("/admin/actividades");
+    router.push("/broker/actividades");
   };
 
   return (
