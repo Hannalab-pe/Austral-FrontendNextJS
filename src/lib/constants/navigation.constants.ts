@@ -207,6 +207,19 @@ export const NAVIGATION_CONFIG_BY_ROLE: Record<string, NavigationItem[]> = {
     ],
     vendedor: [
         {
+            title: "Dashboard",
+            url: "/vendedor/dashboard",
+            icon: LayoutDashboard,
+            isActive: true,
+            items: [
+                {
+                    title: "Panel",
+                    url: "/vendedor/dashboard",
+                    backendRoute: "/vendedor/dashboard",
+                }
+            ],
+        },
+        {
             title: "Gestión",
             url: "#",
             icon: ClipboardList,
@@ -220,6 +233,11 @@ export const NAVIGATION_CONFIG_BY_ROLE: Record<string, NavigationItem[]> = {
                     title: "Clientes",
                     url: "/vendedor/clientes",
                     backendRoute: "/vendedor/clientes",
+                },
+                {
+                    title: "Panel de Cumpleaños",
+                    url: "/vendedor/panel-cumpleanos",
+                    backendRoute: "/vendedor/panel-cumpleanos",
                 },
                 {
                     title: "Notificaciones",
