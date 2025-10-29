@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import ClientesTable from '@/components/clientes/tables/ClientesTable';
+import BulkUploadButton from '@/components/clientes/BulkUploadButton';
 import { Cliente } from '@/types/cliente.interface';
 
 export const metadata = {
@@ -25,6 +26,7 @@ export default function ClientesPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <BulkUploadButton />
           <Button asChild variant="new">
             <Link href="/vendedor/clientes/nuevo">
               <Plus className="mr-2 h-4 w-4" />

@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import BulkUploadButton from '@/components/clientes/BulkUploadButton';
 
 /**
  * Página principal de clientes
@@ -93,10 +94,7 @@ export default function ClientesPage() {
             <Download className="mr-2 h-4 w-4" />
             Exportar
           </Button>
-          <Button variant="outline" size="sm" onClick={handleImport}>
-            <Upload className="mr-2 h-4 w-4" />
-            Importar
-          </Button>
+          <BulkUploadButton />
           <Button 
             onClick={handleCreate}
             className="bg-green-600 hover:bg-green-700 transition-all duration-200"
@@ -122,7 +120,7 @@ export default function ClientesPage() {
             <AlertDialogDescription>
               ¿Estás seguro de que deseas desactivar a{' '}
               <strong>
-                {clienteToDelete?.nombre} {clienteToDelete?.apellido}
+                {clienteToDelete?.nombres} {clienteToDelete?.apellidos}
               </strong>
               ? El cliente no será eliminado, solo se marcará como inactivo y no aparecerá en las búsquedas principales.
             </AlertDialogDescription>

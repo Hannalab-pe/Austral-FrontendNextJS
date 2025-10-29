@@ -258,31 +258,7 @@ export default function LoginForm() {
             'Iniciar Sesión'
           )}
         </Button>
-
-        {/* Información adicional */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p>
-            ¿No tienes una cuenta?{' '}
-            <Link href="/register" className="text-primary hover:underline font-medium">
-              Regístrate aquí
-            </Link>
-          </p>
-        </div>
       </form>
-
-      {/* Credenciales de prueba (solo en desarrollo) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-8 p-4 rounded-lg bg-muted">
-          <p className="text-xs font-semibold mb-2 text-muted-foreground">
-            Credenciales de prueba:
-          </p>
-          <div className="space-y-1 text-xs text-muted-foreground">
-            <p>Email: admin@austral.com</p>
-            <p>Usuario: admin</p>
-            <p>Contraseña: (consultar con el administrador)</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
-import { ChevronLeft, ChevronRight, User, Phone, FileText, Plus, Trash2, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User, Phone, FileText, Plus, Trash2, Loader2, CheckCircle, AlertCircle, Check } from 'lucide-react';
 import { useCliente } from '@/lib/hooks/useClientes';
 import { clientesService } from '@/services/clientes.service';
 import { contactosClienteService } from '@/services/contactos-cliente.service';
@@ -298,45 +298,85 @@ export default function EditarCliente() {
   };
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-center mb-8">
-      {STEPS.map((step, index) => {
-        const Icon = step.icon;
-        const isActive = step.id === currentStep;
-        const isCompleted = step.id < currentStep;
+    <div className="hidden md:flex flex-col space-y-4 w-64 pr-8 border-r border-gray-200">
+      {[1, 2, 3].map((stepNumber) => (
+        <div key={stepNumber} className="flex items-start space-x-3">
+          <div
+            className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              currentStep === stepNumber
+                ? 'bg-blue-600 text-white'
+                : stepNumber < currentStep
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-200 text-gray-600'
+            }`}
+          >
+            {stepNumber < currentStep ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              stepNumber
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm font-medium ${
+              currentStep === stepNumber ? 'text-blue-600' : 'text-gray-900'
+            }`}>
+              {stepNumber === 1 && 'Información del Cliente'}
+              {stepNumber === 2 && 'Documentos y Contactos'}
+              {stepNumber === 3 && 'Confirmación'}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {stepNumber === 1 && 'Datos personales y de contacto'}
+              {stepNumber === 2 && 'Documentos requeridos y contactos adicionales'}
+              {stepNumber === 3 && 'Revisar y guardar cambios'}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
-        return (
-          <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                  isCompleted
-                    ? 'bg-green-500 border-green-500 text-white'
-                    : isActive
-                    ? 'bg-blue-500 border-blue-500 text-white'
-                    : 'bg-gray-100 border-gray-300 text-gray-500'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-              </div>
-              <div className="text-center mt-2 max-w-24">
-                <div className={`text-sm font-medium ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
-                  {step.title}
-                </div>
-                <div className="text-xs text-gray-400 hidden sm:block">
-                  {step.description}
-                </div>
-              </div>
+  const renderMobileStepIndicator = () => (
+    <div className="md:hidden mb-6">
+      <div className="flex items-center justify-center space-x-2 mb-4">
+        {[1, 2, 3].map((stepNumber) => (
+          <React.Fragment key={stepNumber}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                currentStep === stepNumber
+                  ? 'bg-blue-600 text-white'
+                  : stepNumber < currentStep
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-200 text-gray-600'
+              }`}
+            >
+              {stepNumber < currentStep ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                stepNumber
+              )}
             </div>
-            {index < STEPS.length - 1 && (
+            {stepNumber < 3 && (
               <div
-                className={`w-12 h-0.5 mx-2 ${
-                  step.id < currentStep ? 'bg-green-500' : 'bg-gray-300'
+                className={`flex-1 h-0.5 ${
+                  stepNumber < currentStep ? 'bg-green-600' : 'bg-gray-200'
                 }`}
               />
             )}
           </React.Fragment>
-        );
-      })}
+        ))}
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-medium text-gray-900">
+          {currentStep === 1 && 'Información del Cliente'}
+          {currentStep === 2 && 'Documentos y Contactos'}
+          {currentStep === 3 && 'Confirmación'}
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
+          {currentStep === 1 && 'Datos personales y de contacto'}
+          {currentStep === 2 && 'Documentos requeridos y contactos adicionales'}
+          {currentStep === 3 && 'Revisar y guardar cambios'}
+        </p>
+      </div>
     </div>
   );
 
@@ -390,205 +430,248 @@ export default function EditarCliente() {
   };
 
   const renderStep1 = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Tipo de Persona */}
-        <div className="space-y-2">
-          <Label htmlFor="tipoPersona">Tipo de Persona *</Label>
-          <Controller
-            name="tipoPersona"
-            control={control}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NATURAL">Persona Natural</SelectItem>
-                  <SelectItem value="JURIDICA">Persona Jurídica</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
+    <div className="space-y-8">
+      {/* SECCIÓN 1: IDENTIFICACIÓN DEL CLIENTE */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-semibold text-gray-900">Identificación del Cliente</h3>
+          <p className="text-sm text-gray-600">Información básica para identificar al cliente</p>
         </div>
 
-        {/* Tipo de Documento */}
-        <div className="space-y-2">
-          <Label htmlFor="tipoDocumento">Tipo de Documento *</Label>
-          <Controller
-            name="tipoDocumento"
-            control={control}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar documento" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DNI">DNI</SelectItem>
-                  <SelectItem value="CEDULA">Cédula</SelectItem>
-                  <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
-                  <SelectItem value="RUC">RUC</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Tipo de Persona */}
+          <div className="space-y-2">
+            <Label htmlFor="tipoPersona">Tipo de Persona *</Label>
+            <Controller
+              name="tipoPersona"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NATURAL">Persona Natural</SelectItem>
+                    <SelectItem value="JURIDICO">Persona Jurídica</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          {/* Tipo de Documento */}
+          <div className="space-y-2">
+            <Label htmlFor="tipoDocumento">Tipo de Documento *</Label>
+            <Controller
+              name="tipoDocumento"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar documento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DNI">DNI</SelectItem>
+                    <SelectItem value="CEDULA">Cédula</SelectItem>
+                    <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
+                    <SelectItem value="RUC">RUC</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          {/* Número de Documento */}
+          <div className="space-y-2">
+            <Label htmlFor="numeroDocumento">Número de Documento *</Label>
+            <Input
+              id="numeroDocumento"
+              placeholder="Ej: 12345678"
+              {...register('numeroDocumento')}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                setValue('numeroDocumento', value);
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SECCIÓN 2: DATOS PERSONALES */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-semibold text-gray-900">Datos Personales</h3>
+          <p className="text-sm text-gray-600">Información específica según el tipo de persona</p>
         </div>
 
-        {/* Número de Documento */}
-        <div className="space-y-2">
-          <Label htmlFor="numeroDocumento">Número de Documento *</Label>
-          <Input
-            id="numeroDocumento"
-            placeholder="Ej: 12345678"
-            {...register('numeroDocumento')}
-            onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, '');
-              setValue('numeroDocumento', value);
-            }}
-          />
-        </div>
-
-        {/* Teléfono Principal */}
-        <div className="space-y-2">
-          <Label htmlFor="telefono1">Teléfono Principal *</Label>
-          <Input
-            id="telefono1"
-            placeholder="Ej: 925757151"
-            {...register('telefono1')}
-          />
-        </div>
-
-        {/* Nombres (solo para natural) */}
-        <div className="space-y-2">
-          <Label htmlFor="nombres">Nombres</Label>
-          <Input
-            id="nombres"
-            placeholder="Ej: Hannah"
-            {...register('nombres')}
-          />
-        </div>
-
-        {/* Apellidos (solo para natural) */}
-        <div className="space-y-2">
-          <Label htmlFor="apellidos">Apellidos</Label>
-          <Input
-            id="apellidos"
-            placeholder="Ej: Pérez"
-            {...register('apellidos')}
-          />
-        </div>
-
-        {/* Cumpleaños */}
-        <div className="space-y-2">
-          <Label htmlFor="cumpleanos">Cumpleaños</Label>
-          <Controller
-            name="cumpleanos"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                date={field.value}
-                onDateChange={field.onChange}
-                placeholder="Seleccionar fecha de nacimiento"
+        {/* Campos para Persona Natural */}
+        {watchedTipoPersona === 'NATURAL' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="nombres">Nombres *</Label>
+              <Input
+                id="nombres"
+                placeholder="Ej: Juan Carlos"
+                {...register('nombres')}
               />
-            )}
-          />
-        </div>
+            </div>
 
-        {/* Razón Social (solo para jurídico) */}
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="razonSocial">Razón Social</Label>
-          <Input
-            id="razonSocial"
-            placeholder="Ej: Mi Empresa S.A."
-            {...register('razonSocial')}
-          />
-        </div>
-
-        {/* Dirección */}
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="direccion">Dirección *</Label>
-          <Textarea
-            id="direccion"
-            placeholder="Ej: Av. Siempre Viva 123, Lima"
-            {...register('direccion')}
-          />
-        </div>
-
-        {/* Distrito */}
-        <div className="space-y-2">
-          <Label htmlFor="distrito">Distrito</Label>
-          <Input
-            id="distrito"
-            placeholder="Ingrese distrito"
-            {...register('distrito')}
-          />
-        </div>
-
-        {/* Provincia */}
-        <div className="space-y-2">
-          <Label htmlFor="provincia">Provincia</Label>
-          <Input
-            id="provincia"
-            placeholder="Ingrese provincia"
-            {...register('provincia')}
-          />
-        </div>
-
-        {/* Departamento */}
-        <div className="space-y-2">
-          <Label htmlFor="departamento">Departamento</Label>
-          <Input
-            id="departamento"
-            placeholder="Ingrese departamento"
-            {...register('departamento')}
-          />
-        </div>
-
-        {/* Teléfono Secundario */}
-        <div className="space-y-2">
-          <Label htmlFor="telefono2">Teléfono Secundario</Label>
-          <Input
-            id="telefono2"
-            placeholder="Ingrese teléfono secundario"
-            {...register('telefono2')}
-          />
-        </div>
-
-        {/* WhatsApp */}
-        <div className="space-y-2">
-          <Label className='text-green-600' htmlFor="whatsapp">WhatsApp <span className='text-black'>(Incluya el código de país)</span></Label>
-          <Input
-            id="whatsapp"
-            placeholder="Ej: +51 925757151"
-            {...register('whatsapp')}
-          />
-        </div>
-
-        {/* Email para Notificaciones */}
-        <div className="space-y-2">
-          <Label htmlFor="emailNotificaciones">Email para Notificaciones</Label>
-          <Input
-            id="emailNotificaciones"
-            type="email"
-            placeholder="austral@ejemplo.com"
-            {...register('emailNotificaciones')}
-          />
-        </div>
-
-        {/* Recibir Notificaciones */}
-        <div className="space-y-2 flex items-center space-x-2">
-          <Controller
-            name="recibirNotificaciones"
-            control={control}
-            render={({ field }) => (
-              <Checkbox
-                id="recibirNotificaciones"
-                checked={field.value}
-                onCheckedChange={field.onChange}
+            <div className="space-y-2">
+              <Label htmlFor="apellidos">Apellidos *</Label>
+              <Input
+                id="apellidos"
+                placeholder="Ej: Pérez García"
+                {...register('apellidos')}
               />
-            )}
-          />
-          <Label htmlFor="recibirNotificaciones">Recibir notificaciones</Label>
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="cumpleanos">Fecha de Nacimiento</Label>
+              <Controller
+                name="cumpleanos"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    date={field.value}
+                    onDateChange={field.onChange}
+                    placeholder="Seleccionar fecha de nacimiento"
+                  />
+                )}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Campos para Persona Jurídica */}
+        {watchedTipoPersona === 'JURIDICO' && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="razonSocial">Razón Social *</Label>
+              <Input
+                id="razonSocial"
+                placeholder="Ej: Empresa S.A.C."
+                {...register('razonSocial')}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* SECCIÓN 3: DIRECCIÓN Y UBICACIÓN */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-semibold text-gray-900">Dirección y Ubicación</h3>
+          <p className="text-sm text-gray-600">Información de domicilio del cliente</p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="direccion">Dirección Completa *</Label>
+            <Textarea
+              id="direccion"
+              placeholder="Ej: Av. Principal 123, Urbanización Los Jardines, Lima"
+              rows={3}
+              {...register('direccion')}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="distrito">Distrito</Label>
+              <Input
+                id="distrito"
+                placeholder="Ej: Miraflores"
+                {...register('distrito')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="provincia">Provincia</Label>
+              <Input
+                id="provincia"
+                placeholder="Ej: Lima"
+                {...register('provincia')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="departamento">Departamento</Label>
+              <Input
+                id="departamento"
+                placeholder="Ej: Lima"
+                {...register('departamento')}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SECCIÓN 4: INFORMACIÓN DE CONTACTO */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-semibold text-gray-900">Información de Contacto</h3>
+          <p className="text-sm text-gray-600">Datos para comunicarse con el cliente</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="telefono1">Teléfono Principal *</Label>
+            <Input
+              id="telefono1"
+              placeholder="Ej: 925757151"
+              {...register('telefono1')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="telefono2">Teléfono Secundario</Label>
+            <Input
+              id="telefono2"
+              placeholder="Ej: 987654321"
+              {...register('telefono2')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className='text-green-600' htmlFor="whatsapp">
+              WhatsApp <span className='text-black'>(Incluya el código de país)</span>
+            </Label>
+            <Input
+              id="whatsapp"
+              placeholder="Ej: +51 925757151"
+              {...register('whatsapp')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="emailNotificaciones">Email para Notificaciones</Label>
+            <Input
+              id="emailNotificaciones"
+              type="email"
+              placeholder="cliente@ejemplo.com"
+              {...register('emailNotificaciones')}
+            />
+          </div>
+        </div>
+
+        {/* Preferencias de notificación */}
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <Controller
+              name="recibirNotificaciones"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="recibirNotificaciones"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <Label htmlFor="recibirNotificaciones" className="text-sm">
+              Acepto recibir notificaciones por email sobre actualizaciones importantes
+            </Label>
+          </div>
         </div>
       </div>
     </div>
@@ -792,7 +875,8 @@ export default function EditarCliente() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {renderStepIndicator()}
+      {/* Indicador de pasos móvil */}
+      {renderMobileStepIndicator()}
 
       {/* Indicador de éxito */}
       {submitSuccess && (
@@ -828,44 +912,52 @@ export default function EditarCliente() {
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{STEPS[currentStep - 1].title}</CardTitle>
-          <CardDescription>{STEPS[currentStep - 1].description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {renderCurrentStep()}
-        </CardContent>
-      </Card>
+      <div className="md:flex md:space-x-8">
+        {/* Indicador de pasos desktop */}
+        {renderStepIndicator()}
 
-      <div className="flex justify-between mt-6">
-        <Button
-          variant="outline"
-          onClick={prevStep}
-          disabled={currentStep === 1 || isSubmitting}
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Anterior
-        </Button>
+        {/* Contenido principal */}
+        <div className="flex-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>{STEPS[currentStep - 1].title}</CardTitle>
+              <CardDescription>{STEPS[currentStep - 1].description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderCurrentStep()}
+            </CardContent>
+          </Card>
 
-        <Button
-          onClick={currentStep === STEPS.length ? handleSubmit(onSubmit) : nextStep}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Actualizando...
-            </>
-          ) : currentStep === STEPS.length ? (
-            'Finalizar'
-          ) : (
-            <>
-              Siguiente
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </>
-          )}
-        </Button>
+          <div className="flex justify-between mt-6">
+            <Button
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStep === 1 || isSubmitting}
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Anterior
+            </Button>
+
+            <Button
+              onClick={currentStep === STEPS.length ? handleSubmit(onSubmit) : nextStep}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Actualizando...
+                </>
+              ) : currentStep === STEPS.length ? (
+                'Finalizar'
+              ) : (
+                <>
+                  Siguiente
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

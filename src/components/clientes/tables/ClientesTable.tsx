@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 
 interface ClientesTableProps {
+  data: Cliente[];
   onDelete?: (cliente: Cliente) => void;
   onView?: (cliente: Cliente) => void;
 }

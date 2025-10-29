@@ -161,4 +161,36 @@ export const clientesService = {
         const response = await api.get<Cliente[]>(`${CLIENTES_BASE_URL}?search=${encodeURIComponent(term)}`);
         return response.data;
     },
+
+    /**
+     * Descarga la plantilla Excel para subida masiva de clientes
+     */
+    async downloadTemplate(): Promise<Blob> {
+        const response = await api.get('/documents/template', {
+            responseType: 'blob',
+        });
+        return response.data;
+    },
+
+    /**
+     * Sube archivo Excel para procesamiento masivo de clientes
+     */
+    async bulkUpload(file: File): Promise<{
+        success: number;
+        errors: Array<{
+            row: number;
+            error: string;
+        }>;
+        total: number;
+    }> {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await api.post('/documents/bulk-upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
 };
