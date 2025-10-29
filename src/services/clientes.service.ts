@@ -155,6 +155,14 @@ export const clientesService = {
     },
 
     /**
+     * Obtiene cumpleaños próximos
+     */
+    async getCumpleanosProximos(dias: number = 30): Promise<Cliente[]> {
+        const response = await api.get<Cliente[]>(`${CLIENTES_BASE_URL}/cumpleanos-proximos?dias=${dias}`);
+        return response.data;
+    },
+
+    /**
      * Busca clientes por término (nombre, apellido, email, documento)
      */
     async search(term: string): Promise<Cliente[]> {

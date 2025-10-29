@@ -74,11 +74,11 @@ export default function CompaniasClient({
 
   // Handlers
   const handleView = (compania: CompaniaSeguro) => {
-    router.push(`/companias/${compania.idCompania}`);
+    router.push(`/admin/companias/${compania.idCompania}`);
   };
 
   const handleEdit = (compania: CompaniaSeguro) => {
-    router.push(`/companias/${compania.idCompania}/editar`);
+    router.push(`/admin/companias/${compania.idCompania}/editar`);
   };
 
   const handleDelete = (compania: CompaniaSeguro) => {
@@ -109,7 +109,7 @@ export default function CompaniasClient({
   };
 
   const handleViewProducts = (compania: CompaniaSeguro) => {
-    router.push(`/companias/${compania.idCompania}/productos`);
+    router.push(`/admin/companias/${compania.idCompania}/productos`);
   };
 
   const closeDialog = () => {
@@ -160,7 +160,7 @@ export default function CompaniasClient({
           </Button>
           <Button
             className="bg-green-600 hover:bg-green-700 transition-all duration-200"
-            onClick={() => router.push('/companias/nueva')}
+            onClick={() => router.push('/admin/companias/nueva')}
           >
             <Plus className="mr-2 h-4 w-4" />
             Nueva Compañía

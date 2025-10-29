@@ -24,7 +24,7 @@ export default function EditarCompaniaClient({ id }: EditarCompaniaClientProps) 
     try {
       await updateCompaniaMutation.mutateAsync({ id, data });
       toast.success('Compañía actualizada exitosamente');
-      router.push('/companias');
+      router.push('/admin/companias');
     } catch (error: any) {
       console.error('Error al actualizar compañía:', error);
       const errorMessage =
@@ -36,14 +36,14 @@ export default function EditarCompaniaClient({ id }: EditarCompaniaClientProps) 
   };
 
   const handleCancel = () => {
-    router.push('/companias');
+    router.push('/admin/companias');
   };
 
   // Estado de carga
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-5xl">
-        <Link href="/companias">
+        <Link href="/admin/companias">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a Compañías
@@ -65,7 +65,7 @@ export default function EditarCompaniaClient({ id }: EditarCompaniaClientProps) 
   if (isError || !compania) {
     return (
       <div className="container mx-auto max-w-5xl">
-        <Link href="/companias">
+        <Link href="/admin/companias">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a Compañías
@@ -105,7 +105,7 @@ export default function EditarCompaniaClient({ id }: EditarCompaniaClientProps) 
     <div className="container mx-auto max-w-5xl">
       {/* Header */}
       <div className="mb-6">
-        <Link href="/companias">
+        <Link href="/admin/companias">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a Compañías

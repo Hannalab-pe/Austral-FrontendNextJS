@@ -102,11 +102,11 @@ export default function ProductosCompaniaClient({
 
   // Handlers
   const handleView = (producto: ProductoSeguro) => {
-    router.push(`/productos/${producto.idProducto}`);
+    router.push(`/admin/productos/${producto.idProducto}`);
   };
 
   const handleEdit = (producto: ProductoSeguro) => {
-    router.push(`/productos/${producto.idProducto}/editar`);
+    router.push(`/admin/productos/${producto.idProducto}/editar`);
   };
 
   const handleDelete = (producto: ProductoSeguro) => {
@@ -143,7 +143,7 @@ export default function ProductosCompaniaClient({
   };
 
   const handleCreateNew = () => {
-    router.push(`/companias/${idCompania}/productos/nuevo`);
+    router.push(`/admin/companias/${idCompania}/productos/nuevo`);
   };
 
   // Estados de carga y error
@@ -179,7 +179,7 @@ export default function ProductosCompaniaClient({
     <div className="container mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <Link href="/companias">
+        <Link href="/admin/companias">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a Compañías

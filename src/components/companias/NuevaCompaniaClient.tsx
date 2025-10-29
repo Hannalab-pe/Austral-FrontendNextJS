@@ -18,7 +18,7 @@ export default function NuevaCompaniaClient() {
     try {
       await createCompaniaMutation.mutateAsync(data);
       toast.success('Compañía creada exitosamente');
-      router.push('/companias');
+      router.push('/admin/companias');
     } catch (error: any) {
       console.error('Error al crear compañía:', error);
       const errorMessage =
@@ -30,14 +30,14 @@ export default function NuevaCompaniaClient() {
   };
 
   const handleCancel = () => {
-    router.push('/companias');
+    router.push('/admin/companias');
   };
 
   return (
     <div className="container mx-auto max-w-5xl">
       {/* Header */}
       <div className="mb-6">
-        <Link href="/companias">
+        <Link href="/admin/companias">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a Compañías

@@ -38,7 +38,7 @@ export default function LeadsPage() {
         // Mostrar notificación si se están usando datos mock
         const isUsingMockData =
           leadsData.length > 0 &&
-          leadsData[0]?.fechaCreacion?.includes("2025-10-01");
+          leadsData[0]?.fecha_creacion?.includes("2025-10-01");
         if (isUsingMockData) {
           toast.info("Modo Desarrollo", {
             description: "Usando datos de ejemplo. La API no está disponible.",
@@ -69,7 +69,7 @@ export default function LeadsPage() {
       lead.apellido?.toLowerCase().includes(term) ||
       lead.email?.toLowerCase().includes(term) ||
       lead.telefono.includes(term) ||
-      lead.tipoSeguroInteres?.toLowerCase().includes(term)
+      lead.tipo_seguro_interes?.toLowerCase().includes(term)
     );
   });
 
@@ -79,7 +79,7 @@ export default function LeadsPage() {
       // Actualizar localmente primero para feedback inmediato
       setLeads((prevLeads) =>
         prevLeads.map((lead) =>
-          lead.idLead === leadId ? { ...lead, idEstado: newEstadoId } : lead
+          lead.id_lead === leadId ? { ...lead, id_estado: newEstadoId } : lead
         )
       );
 
@@ -93,8 +93,8 @@ export default function LeadsPage() {
         // Si la API falla, revertir el cambio local
         setLeads((prevLeads) =>
           prevLeads.map((lead) =>
-            lead.idLead === leadId
-              ? { ...lead, idEstado: lead.idEstado } // Mantener el estado original
+            lead.id_lead === leadId
+              ? { ...lead, idEstado: lead.id_estado } // Mantener el estado original
               : lead
           )
         );
@@ -129,7 +129,7 @@ export default function LeadsPage() {
   // Estadísticas rápidas
   const stats = {
     total: leads.length,
-    activos: leads.filter((l) => l.estaActivo).length,
+    activos: leads.filter((l) => l.esta_activo).length,
     alta_prioridad: leads.filter((l) => l.prioridad === "ALTA").length,
   };
 
@@ -168,7 +168,7 @@ export default function LeadsPage() {
             Gestiona y da seguimiento a tus oportunidades de negocio
           </p>
         </div>
-        <Button onClick={() => router.push("/leads/nuevo")}>
+        <Button onClick={() => router.push("/admin/leads/nuevo")}>
           <Plus className="h-4 w-4 mr-2" />
           Nuevo Lead
         </Button>

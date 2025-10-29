@@ -79,8 +79,13 @@ export default function LeadsKanban({
 
   // Organizar leads por columnas
   const columns: KanbanColumnType[] = useMemo(() => {
-    return estados
-      .filter((estado) => estado.esta_activo)
+    console.log('Estados disponibles:', estados);
+    console.log('Leads filtrados:', filteredLeads);
+    
+    const activeEstados = estados.filter((estado) => estado.esta_activo);
+    console.log('Estados activos:', activeEstados);
+    
+    return activeEstados
       .sort((a, b) => a.orden_proceso - b.orden_proceso)
       .map((estado) => ({
         id: estado.id_estado,
@@ -92,6 +97,8 @@ export default function LeadsKanban({
         ),
       }));
   }, [filteredLeads, estados]);
+
+  console.log('Columnas generadas:', columns);
 
   // Manejar el drag and drop
   const handleDragEnd = async (result: DropResult) => {
@@ -115,7 +122,7 @@ export default function LeadsKanban({
     // Optimistic update: actualizar el estado local inmediatamente
     const updatedLeads = leads.map((lead) =>
       lead.id_lead === draggableId
-        ? { ...lead, id_estado: destination.droppableId }
+        ? { ...lead, idEstado: destination.droppableId }
         : lead
     );
     setLeads(updatedLeads);
@@ -172,17 +179,26 @@ export default function LeadsKanban({
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="overflow-x-auto max-w-[1400px]">
         <div className="flex gap-4">
-          {columns.map((column) => (
-            <div key={column.id} className="flex-shrink-0 w-80">
-              <KanbanColumn
-                columnId={column.id}
-                titulo={column.titulo}
-                color={column.color}
-                leads={column.leads}
-                onLeadClick={onLeadClick}
-              />
+          {columns.length === 0 ? (
+            <div className="flex items-center justify-center w-full h-64">
+              <div className="text-center">
+                <p className="text-gray-500 mb-2">No hay estados de lead configurados</p>
+                <p className="text-sm text-gray-400">Verifica que existan estados activos en el sistema</p>
+              </div>
             </div>
-          ))}
+          ) : (
+            columns.map((column) => (
+              <div key={column.id} className="flex-shrink-0 w-80">
+                <KanbanColumn
+                  columnId={column.id}
+                  titulo={column.titulo}
+                  color={column.color}
+                  leads={column.leads}
+                  onLeadClick={onLeadClick}
+                />
+              </div>
+            ))
+          )}
         </div>
       </div>
     </DragDropContext>
