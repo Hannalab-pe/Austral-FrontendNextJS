@@ -56,31 +56,33 @@ export default function KanbanColumn({
                 <p>No hay leads en esta etapa</p>
               </div>
             ) : (
-              leads.map((lead, index) => (
-                <Draggable 
-                  key={lead.id_lead} 
-                  draggableId={lead.id_lead} 
-                  index={index}
-                >
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className={`${
-                        snapshot.isDragging 
-                          ? 'opacity-50 rotate-2 scale-105' 
-                          : 'opacity-100'
-                      } transition-all`}
-                    >
-                      <LeadCard 
-                        lead={lead} 
-                        onClick={() => onLeadClick?.(lead)}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))
+              leads
+                .filter(lead => lead.id_lead) // Filtrar leads sin id_lead
+                .map((lead, index) => (
+                  <Draggable
+                    key={lead.id_lead}
+                    draggableId={lead.id_lead}
+                    index={index}
+                  >
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`${
+                          snapshot.isDragging
+                            ? 'opacity-50 rotate-2 scale-105'
+                            : 'opacity-100'
+                        } transition-all`}
+                      >
+                        <LeadCard
+                          lead={lead}
+                          onClick={() => onLeadClick?.(lead)}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))
             )}
             {provided.placeholder}
           </div>

@@ -3,6 +3,44 @@ import { Lead } from "@/types/lead.interface";
 const API_BASE_URL = process.env.NEXT_PUBLIC_LEADS_SERVICE_URL || "/api";
 
 /**
+ * Función helper para transformar datos del backend al formato del frontend
+ * El backend devuelve idLead (camelCase) pero el frontend usa id_lead (snake_case)
+ */
+function transformLeadFromBackend(lead: any): Lead {
+  return {
+    // Mapear idLead del backend a id_lead del frontend
+    id_lead: lead.idLead || lead.id_lead,
+    nombre: lead.nombre,
+    apellido: lead.apellido,
+    email: lead.email,
+    telefono: lead.telefono,
+    fecha_nacimiento: lead.fecha_nacimiento,
+    tipo_seguro_interes: lead.tipo_seguro_interes,
+    // Convertir presupuesto_aproximado de string a number
+    presupuesto_aproximado: lead.presupuesto_aproximado
+      ? typeof lead.presupuesto_aproximado === "string"
+        ? parseFloat(lead.presupuesto_aproximado)
+        : lead.presupuesto_aproximado
+      : undefined,
+    notas: lead.notas,
+    puntaje_calificacion: lead.puntaje_calificacion,
+    prioridad: lead.prioridad,
+    fecha_primer_contacto: lead.fecha_primer_contacto,
+    fecha_ultimo_contacto: lead.fecha_ultimo_contacto,
+    proxima_fecha_seguimiento: lead.proxima_fecha_seguimiento,
+    id_estado: lead.id_estado,
+    id_fuente: lead.id_fuente,
+    asignado_a_usuario: lead.asignado_a_usuario,
+    esta_activo: lead.esta_activo,
+    fecha_creacion: lead.fecha_creacion,
+    // Relaciones expandidas
+    estado: lead.estado,
+    fuente: lead.fuente,
+    usuarioAsignado: lead.usuarioAsignado,
+  };
+}
+
+/**
  * Servicio para gestionar operaciones relacionadas con leads
  */
 export class LeadsService {
@@ -23,18 +61,10 @@ export class LeadsService {
       );
     }
 
-    const data: Lead[] = await response.json();
+    const data: any[] = await response.json();
 
-    // Transformar datos si es necesario
-    return data.map((lead) => ({
-      ...lead,
-      // Convertir presupuesto_aproximado de string a number si viene como string
-      presupuesto_aproximado: lead.presupuesto_aproximado
-        ? typeof lead.presupuesto_aproximado === "string"
-          ? parseFloat(lead.presupuesto_aproximado)
-          : lead.presupuesto_aproximado
-        : undefined,
-    }));
+    // Transformar datos del backend al formato del frontend
+    return data.map(transformLeadFromBackend);
   }
 
   /**
@@ -57,17 +87,10 @@ export class LeadsService {
       );
     }
 
-    const lead: Lead = await response.json();
+    const lead: any = await response.json();
 
-    // Transformar datos si es necesario
-    return {
-      ...lead,
-      presupuesto_aproximado: lead.presupuesto_aproximado
-        ? typeof lead.presupuesto_aproximado === "string"
-          ? parseFloat(lead.presupuesto_aproximado)
-          : lead.presupuesto_aproximado
-        : undefined,
-    };
+    // Transformar datos del backend al formato del frontend
+    return transformLeadFromBackend(lead);
   }
 
   /**
@@ -90,16 +113,9 @@ export class LeadsService {
       );
     }
 
-    const newLead: Lead = await response.json();
+    const newLead: any = await response.json();
 
-    return {
-      ...newLead,
-      presupuesto_aproximado: newLead.presupuesto_aproximado
-        ? typeof newLead.presupuesto_aproximado === "string"
-          ? parseFloat(newLead.presupuesto_aproximado)
-          : newLead.presupuesto_aproximado
-        : undefined,
-    };
+    return transformLeadFromBackend(newLead);
   }
   /**
    * Actualiza un lead existente
@@ -120,16 +136,9 @@ export class LeadsService {
         );
       }
 
-      const updatedLead: Lead = await response.json();
+      const updatedLead: any = await response.json();
 
-      return {
-        ...updatedLead,
-        presupuesto_aproximado: updatedLead.presupuesto_aproximado
-          ? typeof updatedLead.presupuesto_aproximado === "string"
-            ? parseFloat(updatedLead.presupuesto_aproximado)
-            : updatedLead.presupuesto_aproximado
-          : undefined,
-      };
+      return transformLeadFromBackend(updatedLead);
     } catch (error) {
       console.error("Error updating lead:", error);
       throw new Error("No se pudo actualizar el lead.");
@@ -157,16 +166,9 @@ export class LeadsService {
       );
     }
 
-    const updatedLead: Lead = await response.json();
+    const updatedLead: any = await response.json();
 
-    return {
-      ...updatedLead,
-      presupuesto_aproximado: updatedLead.presupuesto_aproximado
-        ? typeof updatedLead.presupuesto_aproximado === "string"
-          ? parseFloat(updatedLead.presupuesto_aproximado)
-          : updatedLead.presupuesto_aproximado
-        : undefined,
-    };
+    return transformLeadFromBackend(updatedLead);
   }
 
   /**

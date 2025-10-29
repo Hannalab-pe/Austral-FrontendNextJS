@@ -91,13 +91,16 @@ export default function LeadsPage() {
         });
       } catch (apiError) {
         // Si la API falla, revertir el cambio local
-        setLeads((prevLeads) =>
-          prevLeads.map((lead) =>
-            lead.id_lead === leadId
-              ? { ...lead, idEstado: lead.id_estado } // Mantener el estado original
-              : lead
-          )
-        );
+        const originalLead = leads.find(l => l.id_lead === leadId);
+        if (originalLead) {
+          setLeads((prevLeads) =>
+            prevLeads.map((lead) =>
+              lead.id_lead === leadId
+                ? { ...lead, id_estado: originalLead.id_estado } // Mantener el estado original
+                : lead
+            )
+          );
+        }
 
         const errorMessage =
           apiError instanceof Error

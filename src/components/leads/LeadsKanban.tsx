@@ -63,11 +63,14 @@ export default function LeadsKanban({
     loadData();
   }, [propLeads, propEstados]);
 
-  // Filtrar leads por búsqueda
+  // Filtrar leads por búsqueda y validar que tengan id_lead
   const filteredLeads = useMemo(() => {
-    if (!searchTerm) return leads;
+    // Primero filtrar solo leads válidos con id_lead
+    const validLeads = leads.filter(lead => lead.id_lead);
+
+    if (!searchTerm) return validLeads;
     const term = searchTerm.toLowerCase();
-    return leads.filter(
+    return validLeads.filter(
       (lead) =>
         lead.nombre.toLowerCase().includes(term) ||
         lead.apellido?.toLowerCase().includes(term) ||
@@ -79,12 +82,8 @@ export default function LeadsKanban({
 
   // Organizar leads por columnas
   const columns: KanbanColumnType[] = useMemo(() => {
-    console.log('Estados disponibles:', estados);
-    console.log('Leads filtrados:', filteredLeads);
-    
     const activeEstados = estados.filter((estado) => estado.esta_activo);
-    console.log('Estados activos:', activeEstados);
-    
+
     return activeEstados
       .sort((a, b) => a.orden_proceso - b.orden_proceso)
       .map((estado) => ({
@@ -97,8 +96,6 @@ export default function LeadsKanban({
         ),
       }));
   }, [filteredLeads, estados]);
-
-  console.log('Columnas generadas:', columns);
 
   // Manejar el drag and drop
   const handleDragEnd = async (result: DropResult) => {
@@ -122,7 +119,7 @@ export default function LeadsKanban({
     // Optimistic update: actualizar el estado local inmediatamente
     const updatedLeads = leads.map((lead) =>
       lead.id_lead === draggableId
-        ? { ...lead, idEstado: destination.droppableId }
+        ? { ...lead, id_estado: destination.droppableId }
         : lead
     );
     setLeads(updatedLeads);
