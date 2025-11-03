@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import RegistrarCliente from '@/components/clientes/forms/RegistrarCliente';
 
 export const metadata = {
- title: 'Nuevo Cliente',
+ title: 'Austral | Nuevo Cliente',
  description: 'Crear un nuevo cliente como vendedor',
 };
 

@@ -7,6 +7,8 @@ import { ArrowLeft } from "lucide-react";
 import type { ActividadFormData } from "@/lib/schemas/actividad.schema";
 import { useCreateActividad } from "@/lib/hooks/useActividades";
 import { useAuthStore } from "@/store/authStore";
+import { FadeIn } from "@/components/animations/FadeIn";
+import { ScaleIn } from "@/components/animations/ScaleIn";
 
 export default function NuevaActividadPage() {
   const router = useRouter();
@@ -62,11 +64,15 @@ export default function NuevaActividadPage() {
       </div>
 
       {/* Formulario */}
-      <ActividadForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={createActividad.isPending}
-      />
+      <ScaleIn
+      delay={0.6}
+      >
+        <ActividadForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={createActividad.isPending}
+        />
+      </ScaleIn>
     </div>
   );
 }

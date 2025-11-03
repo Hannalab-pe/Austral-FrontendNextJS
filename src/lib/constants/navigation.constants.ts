@@ -265,6 +265,16 @@ export const NAVIGATION_CONFIG_BY_ROLE: Record<string, NavigationItem[]> = {
                     title: "Generador de Rutas",
                     url: "/vendedor/generador-rutas",
                     backendRoute: "/vendedor/generador-rutas",
+                },
+                {
+                    title: "Lector de Facturas",
+                    url: "/vendedor/lector-facturas",
+                    backendRoute: "/vendedor/lector-facturas",
+                },
+                {
+                    title: "Lector de Documentos",
+                    url: "/vendedor/lector-documentos",
+                    backendRoute: "/vendedor/lector-documentos",
                 }
             ]
         }

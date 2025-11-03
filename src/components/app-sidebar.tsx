@@ -18,6 +18,8 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { useNavigationPermissions } from "@/lib/hooks/usePermissions"
 
@@ -33,7 +35,7 @@ const data = {
   projects: [
     {
       name: "Soporte x WhatsApp",
-      url: "https://wa.me/925757151", // Cambia este número por el tuyo
+      url: "https://wa.me/925757151",
       icon: WhatsAppIcon,
     },
   ],
@@ -41,13 +43,16 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { filteredNavigation, loading, error } = useNavigationPermissions();
+  const { state } = useSidebar();
 
   // Mostrar loading state mientras se cargan los permisos
   if (loading) {
     return (
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader>
-          <TeamSwitcher teams={data.teams} />
+          <div className="flex items-center gap-2 px-2">
+            <TeamSwitcher teams={data.teams} />
+          </div>
         </SidebarHeader>
         <SidebarContent>
           <div className="flex items-center justify-center p-4">
@@ -67,7 +72,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader>
-          <TeamSwitcher teams={data.teams} />
+          <div className="flex items-center gap-2 px-2">
+            <TeamSwitcher teams={data.teams} />
+          </div>
         </SidebarHeader>
         <SidebarContent>
           <div className="flex items-center justify-center p-4">
@@ -84,12 +91,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props} className="bg-gradient-to-b from-[#0a2342] via-[#163e6c] to-[#274472] text-white">
-      <SidebarHeader>
+      <SidebarHeader className="relative">
         <TeamSwitcher teams={data.teams} />
+        {/* Solo mostrar cuando el sidebar está expandido */}
+        {state === "expanded" && (
+          <div className="absolute top-3 right-3">
+            <SidebarTrigger title="Colapsar menú" className="w-8 h-8 hover:bg-white/10 transition-colors rounded-md" />
+          </div>
+        )}
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={filteredNavigation} />
         <NavProjects projects={data.projects} />
+        {state === "collapsed" && (
+          <div className="flex items-center justify-center">
+            <SidebarTrigger title="Expandir menú" className="w-8 h-8 hover:bg-white/10 transition-colors rounded-md" />
+          </div>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

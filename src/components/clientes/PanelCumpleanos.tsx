@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { SlideUp } from "../animations/SlideUp";
 
 // Configuración del localizer para español
 const localizer = dateFnsLocalizer({
@@ -256,6 +257,8 @@ export function PanelCumpleanos({ className }: PanelCumpleanosProps) {
   }
 
   return (
+    <SlideUp>
+
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -304,6 +307,7 @@ export function PanelCumpleanos({ className }: PanelCumpleanosProps) {
           />
         </div>
       </CardContent>
-    </Card>
+      </Card>
+          </SlideUp>
   );
 }

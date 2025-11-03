@@ -5,15 +5,6 @@ export const metadata = {
 
 import { AppSidebar } from "@/components/app-sidebar"
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
@@ -29,12 +20,12 @@ export default function DashboardLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-          </div>
+        {/* Header solo visible en mobile para el trigger */}
+        <header className="flex items-center h-12 px-2 md:hidden border-b border-gray-200 bg-white/80 backdrop-blur z-20 sticky top-0">
+          <SidebarTrigger className="mr-2" />
+          <span className="font-semibold text-base">Austral CRM</span>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-5">
+        <div className="flex flex-1 flex-col gap-4 p-4 md:p-8">
           {children}
         </div>
       </SidebarInset>

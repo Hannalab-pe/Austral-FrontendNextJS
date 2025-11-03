@@ -9,14 +9,14 @@ export const metadata = {
 export default function PanelCumpleanosPage() {
   return (
     <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Panel de Cumpleaños</h1>
-            <p className="text-muted-foreground">
-              Visualiza los cumpleaños próximos de tus clientes en el calendario
-            </p>
-          </div>
-    
-          <PanelCumpleanos />
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Panel de Cumpleaños</h1>
+        <p className="text-muted-foreground">
+          Visualiza los cumpleaños próximos de tus clientes en el calendario
+        </p>
+      </div>
+
+      <PanelCumpleanos />
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import type { ActividadFormData } from "@/lib/schemas/actividad.schema";
 import type { Actividad, TipoActividad } from "@/types/actividad.interface";
 import { useUpdateActividad } from "@/lib/hooks/useActividades";
 import { actividadService } from "@/services/actividad.service";
+import { ScaleIn } from "@/components/animations/ScaleIn";
 
 export default function EditarActividadPage() {
   const router = useRouter();
@@ -132,11 +133,12 @@ export default function EditarActividadPage() {
       </div>
 
       {/* Formulario */}
-      <ActividadForm
-        onSubmit={handleSubmit}
-        initialData={initialData}
-        onCancel={handleCancel}
-      />
+      <ScaleIn>
+        <ActividadForm
+          onSubmit={handleSubmit}
+          initialData={initialData}
+        />
+      </ScaleIn>
     </div>
   );
 }

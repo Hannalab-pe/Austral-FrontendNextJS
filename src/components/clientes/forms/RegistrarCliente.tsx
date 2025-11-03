@@ -20,6 +20,7 @@ import { contactosClienteService } from '@/services/contactos-cliente.service';
 import type { CreateClienteDto, CreateClienteContactoDto } from '@/types/cliente.interface';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import { FormSlideIn } from '@/components/animations/FormSlideIn';
 
 // Interfaz para el formulario
 interface ClienteFormData {
@@ -273,6 +274,7 @@ export default function RegistrarCliente() {
   );
 
   const renderStep1 = () => (
+    <FormSlideIn>
     <div className="space-y-6">
       {/* Componente de consulta de documento */}
       <ConsultaDocumento
@@ -547,8 +549,9 @@ export default function RegistrarCliente() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
     </div>
+    </FormSlideIn>
   );
 
   const renderStep2 = () => (
@@ -643,7 +646,7 @@ export default function RegistrarCliente() {
       <div className="text-center text-sm text-muted-foreground">
         Puedes agregar múltiples contactos o omitir este paso completamente
       </div>
-    </div>
+      </div>
   );
 
   const renderStep3 = () => (
