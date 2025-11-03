@@ -1,6 +1,7 @@
 
 import LoginForm from '@/components/login/LoginForm';
 import Image from 'next/image';
+import { LoginCarousel } from '@/components/login/LoginCarousel';
 
 export const metadata = {
   title: 'Iniciar Sesión',
@@ -31,13 +32,8 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <div className="bg-gray-200 relative hidden lg:block">
-        {/* <Image
-          src="/images/austral-logo.png"
-          alt="Austral Background"
-          fill
-          className="object-contain dark:brightness-[0.2] dark:grayscale"
-        /> */}
+      <div className="relative hidden lg:block">
+        <LoginCarousel />
       </div>
     </div>
   );
