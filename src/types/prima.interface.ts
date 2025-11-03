@@ -1,4 +1,5 @@
-export type PrimaEstado = 'PENDIENTE' | 'PAGADA' | 'VENCIDA';
+
+import { PrimaEstado } from './enums';
 
 export interface Prima {
   idPrima: string;

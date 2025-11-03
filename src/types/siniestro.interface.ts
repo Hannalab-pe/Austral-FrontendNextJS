@@ -1,4 +1,5 @@
-export type SiniestroEstado = 'REPORTADO' | 'EN_PROCESO' | 'CERRADO' | 'RECHAZADO';
+
+import { SiniestroEstado } from './enums';
 
 export interface Siniestro {
   idSiniestro: string;
