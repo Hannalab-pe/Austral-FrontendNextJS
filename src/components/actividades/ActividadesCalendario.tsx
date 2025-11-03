@@ -20,6 +20,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, PlusIcon, FilterIcon } from 'lucide-react';
+import { FlipCard } from '../animations/FlipCard';
+import { SlideUp } from '../animations/SlideUp';
 
 // Configuración del localizer para español
 const localizer = dateFnsLocalizer({
@@ -228,7 +230,8 @@ export function ActividadesCalendario({ className }: ActividadesCalendarioProps)
   }
 
   return (
-    <Card className={className}>
+    <SlideUp>
+      <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -277,6 +280,7 @@ export function ActividadesCalendario({ className }: ActividadesCalendarioProps)
           />
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </SlideUp>
   );
 }

@@ -9,13 +9,16 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { agenteRutasService } from '@/services/agente-rutas.service';
 import { RutaQuery, RutaResponse } from '@/types/agente-rutas.interface';
-import { MapPin, Route, Clock, Car, Navigation, Sparkles, ArrowRight } from 'lucide-react';
+import { MapPin, Route, Clock, Car, Navigation, ArrowRight, AlertCircle, ExternalLink, Save, Trash2, History } from 'lucide-react';
+import { toast } from 'sonner';
+import { useRouteStore } from '@/store/routeStore';
 
 export default function GeneradorRutasPage() {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState<RutaResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+    const { savedRoutes, addRoute, removeRoute, clearRoutes } = useRouteStore();
 
   const handleGenerateRoute = async () => {
     if (!query.trim()) {
@@ -44,141 +47,158 @@ export default function GeneradorRutasPage() {
     }
   };
 
+  const handleSaveRoute = () => {
+    if (response) {
+      addRoute({
+        query,
+        googleMapsUrl: response.google_maps_url,
+        totalDistance: response.total_distance_km,
+        estimatedTime: response.estimated_time_min,
+      });
+      toast.success('Ruta guardada exitosamente');
+    }
+  };
+
+  const handleDeleteRoute = (routeId: string) => {
+    removeRoute(routeId);
+    toast.success('Ruta eliminada');
+  };
+
+  const handleClearRoutes = () => {
+    clearRoutes();
+    toast.success('Todas las rutas eliminadas');
+  };
+
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto p-6 space-y-8">
-        {/* Header mejorado */}
-        <div className="text-center space-y-4 py-8">
-          <div className="flex items-center justify-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Navigation className="h-8 w-8 text-blue-600" />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Header Profesional */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2.5 bg-slate-900 rounded-lg">
+              <Navigation className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                Generador de Rutas Inteligente
+              <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">
+                Optimizador de Rutas
               </h1>
-              <p className="text-lg text-gray-600 mt-2">
-                Optimiza tus rutas de visita y ahorra tiempo en tus desplazamientos
+              <p className="text-slate-600 mt-1">
+                Planificación inteligente de trayectos para máxima eficiencia
               </p>
             </div>
           </div>
-
-          <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="h-4 w-4 text-yellow-500" />
+          
+          <div className="flex items-center gap-6 mt-6 text-sm text-slate-600">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
               <span>Optimización automática</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <Car className="h-4 w-4 text-green-500" />
-              <span>Rutas eficientes</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-blue-500" />
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
               <span>Ahorro de tiempo</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-violet-500"></div>
+              <span>Reducción de costos</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
-          {/* Panel de entrada mejorado */}
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-3 text-xl">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <MapPin className="h-5 w-5 text-blue-600" />
-                </div>
-                <span>Describe tu ruta</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Panel de Entrada */}
+          <Card className="border border-slate-200 shadow-sm bg-white">
+            <CardHeader className="border-b border-slate-100 pb-5">
+              <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-slate-700" />
+                Configuración de Ruta
               </CardTitle>
-              <p className="text-gray-600 text-sm">
-                Cuéntanos los lugares que necesitas visitar y te ayudaremos a encontrar la ruta más eficiente
+              <p className="text-sm text-slate-600 mt-2 font-normal">
+                Describe los puntos de parada en el orden que prefieras
               </p>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="pt-6 space-y-6">
               <div className="space-y-3">
-                <Label htmlFor="query" className="text-base font-medium">
-                  Lugares a visitar
+                <Label htmlFor="query" className="text-sm font-medium text-slate-700">
+                  Destinos y ubicaciones
                 </Label>
                 <Textarea
                   id="query"
-                  placeholder="Ejemplo: Visitar la oficina en Av. Siempre Viva 123, luego recoger paquetes en Calle Falsa 456, y finalmente ir al supermercado en Plaza Central."
+                  placeholder="Ejemplo: Comenzar en la oficina ubicada en Av. República de Panamá 3055, San Isidro. Luego ir al Centro de Distribución en Av. Javier Prado 5250, La Molina. Después visitar cliente en Av. Larco 1301, Miraflores..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  rows={12}
-                  className="resize-none text-base leading-relaxed border-2 focus:border-blue-300"
+                  rows={10}
+                  className="resize-none text-sm leading-relaxed border-slate-200 focus:border-slate-900 focus:ring-slate-900 bg-slate-50"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                       handleGenerateRoute();
                     }
                   }}
                 />
+                <p className="text-xs text-slate-500">
+                  Presiona <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-xs">Ctrl+Enter</kbd> para generar
+                </p>
               </div>
 
               <Button
                 onClick={handleGenerateRoute}
                 disabled={loading}
-                size="lg"
-                className="w-full h-12 text-lg font-medium bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 shadow-lg"
+                className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium shadow-sm transition-all"
               >
                 {loading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Calculando ruta óptima...</span>
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Optimizando ruta...</span>
                   </div>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <Route className="h-5 w-5" />
-                    <span>Generar Ruta Inteligente</span>
+                  <div className="flex items-center gap-2">
+                    <Route className="h-4 w-4" />
+                    <span>Generar Ruta Óptima</span>
                   </div>
                 )}
               </Button>
 
               {error && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <p className="text-red-700 text-sm font-medium">{error}</p>
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-red-900">Error al generar ruta</p>
+                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                    </div>
                   </div>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Panel de resultados mejorado */}
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-3 text-xl">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Route className="h-5 w-5 text-green-600" />
-                </div>
-                <span>Tu Ruta Optimizada</span>
+          {/* Panel de Resultados */}
+          <Card className="border border-slate-200 shadow-sm bg-white">
+            <CardHeader className="border-b border-slate-100 pb-5">
+              <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <Route className="h-5 w-5 text-slate-700" />
+                Resultado de Optimización
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {!response && !loading && (
                 <div className="text-center py-16 space-y-6">
-                  <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-green-100 rounded-full mx-auto flex items-center justify-center">
-                      <Navigation className="h-12 w-12 text-blue-500" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-                      <Sparkles className="h-4 w-4 text-white" />
-                    </div>
+                  <div className="w-20 h-20 bg-slate-100 rounded-full mx-auto flex items-center justify-center">
+                    <Navigation className="h-10 w-10 text-slate-400" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-gray-700">¡Comienza tu viaje!</h3>
-                    <p className="text-gray-500 max-w-sm mx-auto">
-                      Describe los lugares que necesitas visitar y nuestra IA te ayudará a encontrar la ruta más eficiente para optimizar tu tiempo y reducir costos.
+                    <h3 className="text-base font-semibold text-slate-900">
+                      Sin ruta generada
+                    </h3>
+                    <p className="text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
+                      Ingresa las ubicaciones que necesitas visitar y el sistema calculará la ruta más eficiente automáticamente.
                     </p>
                   </div>
-                  <div className="flex justify-center space-x-4 text-sm text-gray-400">
-                    <Badge variant="secondary" className="bg-blue-50 text-blue-600">
-                      🚀 Rápido
+                  <div className="flex justify-center gap-2">
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-0">
+                      Optimización IA
                     </Badge>
-                    <Badge variant="secondary" className="bg-green-50 text-green-600">
-                      💰 Eficiente
-                    </Badge>
-                    <Badge variant="secondary" className="bg-purple-50 text-purple-600">
-                      🎯 Optimizado
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-0">
+                      Tiempo real
                     </Badge>
                   </div>
                 </div>
@@ -186,108 +206,107 @@ export default function GeneradorRutasPage() {
 
               {loading && (
                 <div className="text-center py-16 space-y-6">
-                  <div className="relative">
-                    <div className="w-20 h-20 border-4 border-blue-200 rounded-full mx-auto"></div>
-                    <div className="absolute top-0 left-0 w-20 h-20 border-4 border-blue-600 rounded-full animate-spin border-t-transparent mx-auto"></div>
+                  <div className="relative w-16 h-16 mx-auto">
+                    <div className="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-slate-900 rounded-full animate-spin border-t-transparent"></div>
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-gray-700">Calculando la ruta perfecta</h3>
-                    <p className="text-gray-500">Analizando distancias, tiempos y optimizando el orden de visita...</p>
-                  </div>
-                  <div className="flex justify-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <h3 className="text-base font-semibold text-slate-900">
+                      Procesando información
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      Calculando distancias y optimizando el orden de visitas
+                    </p>
                   </div>
                 </div>
               )}
 
               {response && (
                 <div className="space-y-6">
-                  {/* Información general con mejor diseño */}
+                  {/* Métricas Clave */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                      <div className="flex items-center space-x-3">
-                        <MapPin className="h-5 w-5 text-blue-600" />
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-md border border-slate-200">
+                          <Car className="h-4 w-4 text-slate-700" />
+                        </div>
                         <div>
-                          <p className="text-sm font-medium text-blue-900">Origen</p>
-                          <p className="text-sm text-blue-700 font-medium">{response.origin}</p>
+                          <p className="text-xs font-medium text-slate-600">Distancia</p>
+                          <p className="text-xl font-semibold text-slate-900">{response.total_distance_km} km</p>
                         </div>
                       </div>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                      <div className="flex items-center space-x-3">
-                        <Car className="h-5 w-5 text-green-600" />
-                        <div>
-                          <p className="text-sm font-medium text-green-900">Distancia Total</p>
-                          <p className="text-lg font-bold text-green-700">{response.total_distance_km} km</p>
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-md border border-slate-200">
+                          <Clock className="h-4 w-4 text-slate-700" />
                         </div>
-                      </div>
-                    </div>
-                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
-                      <div className="flex items-center space-x-3">
-                        <Clock className="h-5 w-5 text-orange-600" />
                         <div>
-                          <p className="text-sm font-medium text-orange-900">Tiempo Estimado</p>
-                          <p className="text-lg font-bold text-orange-700">{response.estimated_time_min} min</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                      <div className="flex items-center space-x-3">
-                        <Route className="h-5 w-5 text-purple-600" />
-                        <div>
-                          <p className="text-sm font-medium text-purple-900">Paradas</p>
-                          <p className="text-lg font-bold text-purple-700">{response.optimized_order.length}</p>
+                          <p className="text-xs font-medium text-slate-600">Tiempo</p>
+                          <p className="text-xl font-semibold text-slate-900">{response.estimated_time_min} min</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <Separator />
+                  <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <div className="flex items-center gap-2 mb-1">
+                      <MapPin className="h-4 w-4 text-slate-600" />
+                      <p className="text-xs font-medium text-slate-600">Punto de origen</p>
+                    </div>
+                    <p className="text-sm font-medium text-slate-900">{response.origin}</p>
+                  </div>
 
-                  {/* Orden optimizado mejorado */}
+                  <Separator className="bg-slate-100" />
+
+                  {/* Secuencia Optimizada */}
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-lg flex items-center space-x-2">
-                      <ArrowRight className="h-5 w-5 text-blue-600" />
-                      <span>Orden Optimizado de Visita</span>
+                    <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-slate-900 rounded-full"></div>
+                      Secuencia de visitas
                     </h4>
-                    <div className="flex flex-wrap gap-3">
-                      {response.optimized_order.map((location, index) => (
+                    <div className="space-y-2">
+                      {response.optimized_order.map((location: string, index: number) => (
                         <div
                           key={index}
-                          className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-md"
+                          className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg"
                         >
-                          <span className="font-bold text-lg">{index + 1}</span>
-                          <span className="font-medium">{location}</span>
+                          <div className="w-7 h-7 bg-slate-900 text-white rounded-md flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                            {index + 1}
+                          </div>
+                          <span className="text-sm font-medium text-slate-900">{location}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <Separator />
+                  <Separator className="bg-slate-100" />
 
-                  {/* Pasos detallados mejorados */}
+                  {/* Detalle de Trayectos */}
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-lg flex items-center space-x-2">
-                      <Navigation className="h-5 w-5 text-green-600" />
-                      <span>Detalles del Recorrido</span>
+                    <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-slate-900 rounded-full"></div>
+                      Detalle de trayectos
                     </h4>
-                    <div className="space-y-3">
-                      {response.steps.map((step, index) => (
-                        <div key={index} className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    <div className="space-y-2">
+                      {response.steps.map((step: any, index: number) => (
+                        <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className="w-6 h-6 bg-slate-200 text-slate-700 rounded-md flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
                                 {index + 1}
                               </div>
-                              <div>
-                                <p className="font-medium text-gray-900">
-                                  {step.from} <ArrowRight className="inline h-4 w-4 mx-1" /> {step.to}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  {step.distance} • {step.time}
-                                </p>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-sm font-medium text-slate-900 truncate">{step.from}</p>
+                                  <ArrowRight className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                                  <p className="text-sm font-medium text-slate-900 truncate">{step.to}</p>
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-slate-600">
+                                  <span>{step.distance}</span>
+                                  <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                                  <span>{step.time}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -296,24 +315,107 @@ export default function GeneradorRutasPage() {
                     </div>
                   </div>
 
-                  <Separator />
+                  <Separator className="bg-slate-100" />
 
-                  {/* Botón de Google Maps mejorado */}
+                  {/* Botón de Google Maps */}
                   <Button
                     onClick={handleOpenGoogleMaps}
-                    size="lg"
                     variant="outline"
-                    className="w-full h-12 text-lg font-medium border-2 border-blue-500 text-blue-600 hover:bg-blue-50 hover:border-blue-600"
+                    className="w-full h-11 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-medium transition-all"
                   >
-                    <MapPin className="h-5 w-5 mr-3" />
-                    Ver Ruta Completa en Google Maps
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Abrir en Google Maps
+                  </Button>
+
+                  {/* Botón de Guardar Ruta */}
+                  <Button
+                    onClick={handleSaveRoute}
+                    className="w-full h-11 bg-green-600 hover:bg-green-500 text-white font-medium transition-all"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar Ruta
                   </Button>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+
+        {/* Sección de Rutas Guardadas */}
+        {savedRoutes.length > 0 && (
+          <Card className="mt-8 border border-slate-200 shadow-sm bg-white">
+            <CardHeader className="border-b border-slate-100 pb-5">
+              <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <History className="h-5 w-5 text-slate-700" />
+                Rutas Guardadas
+              </CardTitle>
+              <p className="text-sm text-slate-600 mt-2 font-normal">
+                Historial de rutas optimizadas generadas
+              </p>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {savedRoutes.map((route) => (
+                  <div key={route.id} className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <MapPin className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                          <p className="text-sm font-medium text-slate-900 truncate">{route.query}</p>
+                        </div>
+                        {route.totalDistance && route.estimatedTime && (
+                          <div className="flex items-center gap-4 text-xs text-slate-600 mb-2">
+                            <span className="flex items-center gap-1">
+                              <Car className="h-3 w-3" />
+                              {route.totalDistance} km
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {route.estimatedTime} min
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-500">
+                          Guardada el {new Date(route.createdAt).toLocaleDateString('es-ES')}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => window.open(route.googleMapsUrl, '_blank')}
+                          variant="outline"
+                          size="sm"
+                          className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteRoute(route.id)}
+                          variant="outline"
+                          size="sm"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <Button
+                  onClick={handleClearRoutes}
+                  variant="outline"
+                  size="sm"
+                  className="border-red-300 text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Limpiar todas las rutas
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </div>
-  );
+     </div>
+   )
 }

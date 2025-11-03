@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, User, Phone, Mail, MapPin, FileText, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { StaggerChildren } from '../animations/StaggerChildren';
 
 export default function VerCliente() {
   const params = useParams();
@@ -74,9 +75,9 @@ export default function VerCliente() {
           {cliente.estaActivo ? 'Activo' : 'Inactivo'}
         </Badge>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Información Principal */}
+
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -308,8 +309,8 @@ export default function VerCliente() {
               )}
             </CardContent>
           </Card>
+          </div>
         </div>
-      </div>
     </div>
   );
 }
