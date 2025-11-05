@@ -1,12 +1,12 @@
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import VendedoresTable from '@/components/vendedores/tables/VendedoresTable';
 
 export const metadata = {
   title: 'Austral | Vendedores',
   description: 'Gestión de vendedores para brokers',
 };
-
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 
 export default function VendedoresPage() {
   return (
@@ -26,7 +26,9 @@ export default function VendedoresPage() {
           </Link>
         </Button>
       </div>
-      {/* Aquí irá la tabla/listado de vendedores */}
+
+      {/* Tabla de vendedores */}
+      <VendedoresTable />
     </div>
   );
 }

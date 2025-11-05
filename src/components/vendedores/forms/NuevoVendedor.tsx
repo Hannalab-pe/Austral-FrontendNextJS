@@ -37,7 +37,7 @@ export const NuevoVendedor = () => {
   const contrasena = watch('contrasena');
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-7xl mx-auto">
       <CardHeader>
         <CardTitle>Registrar Nuevo Vendedor</CardTitle>
         <CardDescription>

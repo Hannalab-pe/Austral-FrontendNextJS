@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function NuevoVendedorPage() {
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="max-w-7xl mx-auto py-8">
       <h2 className="text-2xl font-bold mb-6">Registrar nuevo vendedor</h2>
       <NuevoVendedor />
     </div>

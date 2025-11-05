@@ -46,7 +46,7 @@ export const vendedoresService = {
      */
     async create(data: CreateVendedorDto): Promise<VendedorResponse> {
         try {
-            const response = await apiClient.post<VendedorResponse>('/auth/vendedores', data);
+            const response = await apiClient.post<VendedorResponse>('/auth/create-vendedor', data);
             return response.data;
         } catch (error: unknown) {
             const message = error instanceof Error &&
@@ -65,14 +65,29 @@ export const vendedoresService = {
      */
     async getAll(estaActivo?: boolean, search?: string): Promise<VendedorResponse[]> {
         try {
-            const params = new URLSearchParams();
-            if (estaActivo !== undefined) params.append('esta_activo', String(estaActivo));
-            if (search) params.append('search', search);
-
-            const response = await apiClient.get<VendedorResponse[]>(
-                `/auth/vendedores${params.toString() ? `?${params.toString()}` : ''}`
+            const response = await apiClient.get<{ vendedores: VendedorResponse[], total: number, activos: number }>(
+                `/auth/my-vendedores`
             );
-            return response.data;
+
+            let vendedores = response.data.vendedores;
+
+            // Filtrar por estado si se especifica
+            if (estaActivo !== undefined) {
+                vendedores = vendedores.filter(v => v.estaActivo === estaActivo);
+            }
+
+            // Filtrar por búsqueda si se especifica
+            if (search) {
+                const searchLower = search.toLowerCase();
+                vendedores = vendedores.filter(v =>
+                    v.nombre.toLowerCase().includes(searchLower) ||
+                    v.apellido.toLowerCase().includes(searchLower) ||
+                    v.email.toLowerCase().includes(searchLower) ||
+                    v.nombreUsuario.toLowerCase().includes(searchLower)
+                );
+            }
+
+            return vendedores;
         } catch (error: unknown) {
             const message = error instanceof Error &&
                 typeof error === 'object' &&
@@ -122,8 +137,18 @@ export const vendedoresService = {
      */
     async getById(id: string): Promise<VendedorResponse> {
         try {
-            const response = await apiClient.get<VendedorResponse>(`/auth/vendedores/${id}`);
-            return response.data;
+            // Obtener todos los vendedores y buscar el específico
+            const response = await apiClient.get<{ vendedores: VendedorResponse[], total: number, activos: number }>(
+                `/auth/my-vendedores`
+            );
+
+            const vendedor = response.data.vendedores.find(v => v.idUsuario === id);
+
+            if (!vendedor) {
+                throw new Error('Vendedor no encontrado');
+            }
+
+            return vendedor;
         } catch (error: unknown) {
             const message = error instanceof Error &&
                 typeof error === 'object' &&
@@ -131,17 +156,17 @@ export const vendedoresService = {
                 'response' in error &&
                 (error as { response?: { data?: { message?: string } } }).response?.data?.message
                 ? (error as { response: { data: { message: string } } }).response.data.message
-                : 'Error al obtener vendedor';
+                : error instanceof Error ? error.message : 'Error al obtener vendedor';
             throw new Error(message);
         }
     },
 
     /**
-     * Actualizar vendedor
+     * Actualizar vendedor (solo teléfono y comisión)
      */
     async update(id: string, data: UpdateVendedorDto): Promise<VendedorResponse> {
         try {
-            const response = await apiClient.put<VendedorResponse>(`/auth/vendedores/${id}`, data);
+            const response = await apiClient.patch<VendedorResponse>(`/auth/vendedores/${id}`, data);
             return response.data;
         } catch (error: unknown) {
             const message = error instanceof Error &&

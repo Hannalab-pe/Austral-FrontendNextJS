@@ -130,7 +130,7 @@ export default function UsuariosClient({ initialData }: UsuariosClientProps) {
           </Button>
           <Button
             className="bg-green-600 hover:bg-green-700 transition-all duration-200"
-            onClick={() => router.push('/usuarios/nuevo')}
+            onClick={() => router.push('/admin/usuarios/nuevo')}
           >
             <Plus className="mr-2 h-4 w-4" />
             Nuevo Usuario
