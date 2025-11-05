@@ -1,23 +1,32 @@
+
 export const metadata = {
-  title: 'Austral | Mis Vendedores',
-  description: 'Lista de vendedores asignados a este Broker',
+  title: 'Austral | Vendedores',
+  description: 'Gestión de vendedores para brokers',
 };
 
-import VendedoresBrokerClient from '@/components/brokers/VendedoresBrokerClient';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
-/**
- * Página de Vendedores del Broker - Server Component
- *
- * Este componente se renderiza en el servidor, lo que permite:
- * - Mejor SEO
- * - Carga inicial más rápida
- * - Posibilidad de prefetch de vendedores en el servidor (opcional)
- *
- * La lógica interactiva está en VendedoresBrokerClient (Client Component)
- */
-export default async function VendedoresBrokerPage() {
-  // Opcional: Prefetch de vendedores en el servidor para hidratar el caché de TanStack Query
-  // const vendedores = await fetchVendedoresBrokerServer();
-
-  return <VendedoresBrokerClient />;
+export default function VendedoresPage() {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Vendedores</h1>
+          <p className="text-muted-foreground">
+            Gestiona y visualiza los vendedores asociados a tu broker
+          </p>
+        </div>
+        <Button asChild variant="new">
+          <Link href="/broker/vendedores/nuevo">
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Vendedor
+          </Link>
+        </Button>
+      </div>
+      {/* Aquí irá la tabla/listado de vendedores */}
+    </div>
+  );
 }

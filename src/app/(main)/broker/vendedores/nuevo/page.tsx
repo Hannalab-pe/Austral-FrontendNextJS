@@ -1,23 +1,16 @@
+
+import { NuevoVendedor } from '@/components/vendedores/forms/NuevoVendedor';
+
 export const metadata = {
   title: 'Austral | Nuevo Vendedor',
-  description: 'Registrar un nuevo vendedor como Broker',
+  description: 'Crear un nuevo vendedor para el broker',
 };
 
-import NuevoVendedorBrokerClient from '@/components/brokers/NuevoVendedorBrokerClient';
-
-/**
- * Página de Nuevo Vendedor para Brokers - Server Component
- *
- * Este componente se renderiza en el servidor, lo que permite:
- * - Mejor SEO
- * - Carga inicial más rápida
- * - Posibilidad de prefetch de datos en el servidor (opcional)
- *
- * La lógica interactiva está en NuevoVendedorBrokerClient (Client Component)
- */
-export default async function NuevoVendedorBrokerPage() {
-  // Opcional: Prefetch de datos en el servidor para hidratar el caché de TanStack Query
-  // const initialData = await fetchNuevoVendedorDataServer();
-
-  return <NuevoVendedorBrokerClient />;
+export default function NuevoVendedorPage() {
+  return (
+    <div className="max-w-2xl mx-auto py-8">
+      <h2 className="text-2xl font-bold mb-6">Registrar nuevo vendedor</h2>
+      <NuevoVendedor />
+    </div>
+  );
 }
