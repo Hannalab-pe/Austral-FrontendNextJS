@@ -1,53 +1,43 @@
+import { useQuery } from "@tanstack/react-query";
+import { leadsClient } from "@/lib/api/api";
 import { EstadoLead } from "@/types/lead.interface";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_ESTADOS_LEAD_SERVICE_URL || "/api";
+// ==========================================
+// CONSTANTES
+// ==========================================
 
-/**
- * Servicio para gestionar operaciones relacionadas con estados de lead
- */
-export class EstadosLeadService {
-  /**
-   * Obtiene todos los estados de lead desde la API
-   */
-  static async getEstadosLead(): Promise<EstadoLead[]> {
-    const response = await fetch(`${API_BASE_URL}/estados-lead`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+export const ESTADOS_LEAD_KEY = ["estados-lead"];
 
-    if (!response.ok) {
-      throw new Error(
-        `Error al obtener estados: ${response.status} ${response.statusText}`
-      );
-    }
+// ==========================================
+// API - Funciones de servicio
+// ==========================================
 
-    const data: EstadoLead[] = await response.json();
-    return data;
-  }
+const estadosLeadApi = {
+  getAll: async (): Promise<EstadoLead[]> => {
+    const response = await leadsClient.get<EstadoLead[]>("/estados-lead");
+    return response.data || [];
+  },
+};
 
-  /**
-   * Obtiene un estado específico por ID
-   */
-  static async getEstadoLeadById(id: string): Promise<EstadoLead | null> {
-    const response = await fetch(`${API_BASE_URL}/estados-lead/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+// ==========================================
+// HOOKS - TanStack Query
+// ==========================================
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(
-        `Error al obtener estado: ${response.status} ${response.statusText}`
-      );
-    }
+const useGetAll = () => {
+  return useQuery({
+    queryKey: ESTADOS_LEAD_KEY,
+    queryFn: estadosLeadApi.getAll,
+  });
+};
 
-    const estado: EstadoLead = await response.json();
-    return estado;
-  }
-}
+// ==========================================
+// EXPORTACIÓN - Servicio completo
+// ==========================================
+
+export const EstadosLeadService = {
+  // API functions
+  ...estadosLeadApi,
+
+  // Hooks
+  useGetAll,
+};

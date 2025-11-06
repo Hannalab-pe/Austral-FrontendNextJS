@@ -1,196 +1,115 @@
-import { Lead } from "@/types/lead.interface";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { leadsClient } from "@/lib/api/api";
+import { Lead, CreateLeadDto, UpdateLeadDto } from "@/types/lead.interface";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_LEADS_SERVICE_URL || "/api";
+// ==========================================
+// CONSTANTES
+// ==========================================
 
-/**
- * Función helper para transformar datos del backend al formato del frontend
- * El backend devuelve idLead (camelCase) pero el frontend usa id_lead (snake_case)
- */
-function transformLeadFromBackend(lead: any): Lead {
-  return {
-    // Mapear idLead del backend a id_lead del frontend
-    id_lead: lead.idLead || lead.id_lead,
-    nombre: lead.nombre,
-    apellido: lead.apellido,
-    email: lead.email,
-    telefono: lead.telefono,
-    fecha_nacimiento: lead.fecha_nacimiento,
-    tipo_seguro_interes: lead.tipo_seguro_interes,
-    // Convertir presupuesto_aproximado de string a number
-    presupuesto_aproximado: lead.presupuesto_aproximado
-      ? typeof lead.presupuesto_aproximado === "string"
-        ? parseFloat(lead.presupuesto_aproximado)
-        : lead.presupuesto_aproximado
-      : undefined,
-    notas: lead.notas,
-    puntaje_calificacion: lead.puntaje_calificacion,
-    prioridad: lead.prioridad,
-    fecha_primer_contacto: lead.fecha_primer_contacto,
-    fecha_ultimo_contacto: lead.fecha_ultimo_contacto,
-    proxima_fecha_seguimiento: lead.proxima_fecha_seguimiento,
-    id_estado: lead.id_estado,
-    id_fuente: lead.id_fuente,
-    asignado_a_usuario: lead.asignado_a_usuario,
-    esta_activo: lead.esta_activo,
-    fecha_creacion: lead.fecha_creacion,
-    // Relaciones expandidas
-    estado: lead.estado,
-    fuente: lead.fuente,
-    usuarioAsignado: lead.usuarioAsignado,
-  };
-}
+export const LEADS_QUERY_KEY = ["leads"];
 
-/**
- * Servicio para gestionar operaciones relacionadas con leads
- */
-export class LeadsService {
-  /**
-   * Obtiene todos los leads desde la API
-   */
-  static async getLeads(): Promise<Lead[]> {
-    const response = await fetch(`${API_BASE_URL}/leads`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+// ==========================================
+// API - Funciones de servicio
+// ==========================================
+
+const leadsApi = {
+  getAll: async (): Promise<Lead[]> => {
+    const response = await leadsClient.get<Lead[]>("/leads");
+    return response.data || [];
+  },
+
+  create: async (data: CreateLeadDto): Promise<Lead> => {
+    const response = await leadsClient.post<Lead>("/leads", data);
+    return response.data;
+  },
+
+  update: async (id: string, data: UpdateLeadDto): Promise<Lead> => {
+    const response = await leadsClient.patch<Lead>(`/leads/${id}`, data);
+    return response.data;
+  },
+
+  updateStatus: async (id: string, idEstado: string): Promise<Lead> => {
+    const response = await leadsClient.patch<Lead>(`/leads/${id}/status`, {
+      id_estado: idEstado
     });
+    return response.data;
+  },
 
-    if (!response.ok) {
-      throw new Error(
-        `Error al obtener leads: ${response.status} ${response.statusText}`
-      );
-    }
+  delete: async (id: string): Promise<{ message: string }> => {
+    const response = await leadsClient.delete<{ message: string }>(`/leads/${id}`);
+    return response.data;
+  },
+};
 
-    const data: any[] = await response.json();
+// ==========================================
+// HOOKS - TanStack Query
+// ==========================================
 
-    // Transformar datos del backend al formato del frontend
-    return data.map(transformLeadFromBackend);
-  }
+const useGetAll = () => {
+  return useQuery({
+    queryKey: LEADS_QUERY_KEY,
+    queryFn: leadsApi.getAll,
+  });
+};
 
-  /**
-   * Obtiene un lead específico por ID
-   */
-  static async getLeadById(id: string): Promise<Lead | null> {
-    const response = await fetch(`${API_BASE_URL}/leads/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+const useCreate = () => {
+  const queryClient = useQueryClient();
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(
-        `Error al obtener lead: ${response.status} ${response.statusText}`
-      );
-    }
+  return useMutation({
+    mutationFn: leadsApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+    },
+  });
+};
 
-    const lead: any = await response.json();
+const useUpdate = () => {
+  const queryClient = useQueryClient();
 
-    // Transformar datos del backend al formato del frontend
-    return transformLeadFromBackend(lead);
-  }
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateLeadDto }) =>
+      leadsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+    },
+  });
+};
 
-  /**
-   * Crea un nuevo lead
-   */
-  static async createLead(
-    leadData: Omit<Lead, "id_lead" | "fecha_creacion">
-  ): Promise<Lead> {
-    const response = await fetch(`${API_BASE_URL}/leads`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(leadData),
-    });
+const useUpdateStatus = () => {
+  const queryClient = useQueryClient();
 
-    if (!response.ok) {
-      throw new Error(
-        `Error al crear lead: ${response.status} ${response.statusText}`
-      );
-    }
+  return useMutation({
+    mutationFn: ({ id, idEstado }: { id: string; idEstado: string }) =>
+      leadsApi.updateStatus(id, idEstado),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+    },
+  });
+};
 
-    const newLead: any = await response.json();
+const useDelete = () => {
+  const queryClient = useQueryClient();
 
-    return transformLeadFromBackend(newLead);
-  }
-  /**
-   * Actualiza un lead existente
-   */
-  static async updateLead(id: string, leadData: Partial<Lead>): Promise<Lead> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/leads/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(leadData),
-      });
+  return useMutation({
+    mutationFn: (id: string) => leadsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+    },
+  });
+};
 
-      if (!response.ok) {
-        throw new Error(
-          `Error al actualizar lead: ${response.status} ${response.statusText}`
-        );
-      }
+// ==========================================
+// EXPORTACIÓN - Servicio completo
+// ==========================================
 
-      const updatedLead: any = await response.json();
+export const LeadsService = {
+  // API functions
+  ...leadsApi,
 
-      return transformLeadFromBackend(updatedLead);
-    } catch (error) {
-      console.error("Error updating lead:", error);
-      throw new Error("No se pudo actualizar el lead.");
-    }
-  }
-
-  /**
-   * Actualiza el estado de un lead
-   */
-  static async updateLeadStatus(
-    leadId: string,
-    newEstadoId: string
-  ): Promise<Lead> {
-    const response = await fetch(`${API_BASE_URL}/leads/${leadId}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id_estado: newEstadoId }),
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Error al actualizar estado: ${response.status} ${response.statusText}`
-      );
-    }
-
-    const updatedLead: any = await response.json();
-
-    return transformLeadFromBackend(updatedLead);
-  }
-
-  /**
-   * Elimina un lead
-   */
-  static async deleteLead(id: string): Promise<void> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/leads/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Error al eliminar lead: ${response.status} ${response.statusText}`
-        );
-      }
-    } catch (error) {
-      console.error("Error deleting lead:", error);
-      throw new Error("No se pudo eliminar el lead.");
-    }
-  }
-}
+  // Hooks
+  useGetAll,
+  useCreate,
+  useUpdate,
+  useUpdateStatus,
+  useDelete,
+};

@@ -1,84 +1,33 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { Lead, KanbanColumn as KanbanColumnType } from "@/types/lead.interface";
 import { EstadoLead } from "@/types/lead.interface";
 import KanbanColumn from "./KanbanColumn";
 import { toast } from "sonner";
-import { LeadsService } from "@/services/leads.service";
-import { EstadosLeadService } from "@/services/estados-lead.service";
 
 interface LeadsKanbanProps {
-  leads?: Lead[];
-  estados?: EstadoLead[];
+  leads: Lead[];
+  estados: EstadoLead[];
   searchTerm?: string;
   onLeadMove?: (leadId: string, newEstadoId: string) => void;
   onLeadClick?: (lead: Lead) => void;
 }
 
 export default function LeadsKanban({
-  leads: propLeads,
-  estados: propEstados,
+  leads,
+  estados,
   searchTerm = "",
   onLeadMove,
   onLeadClick,
 }: LeadsKanbanProps) {
-  const [leads, setLeads] = useState<Lead[]>(propLeads || []);
-  const [estados, setEstados] = useState<EstadoLead[]>(propEstados || []);
-  const [loading, setLoading] = useState(!propLeads || !propEstados);
-  const [error, setError] = useState<string | null>(null);
 
-  // Cargar datos iniciales si no se pasaron como props
-  useEffect(() => {
-    if (propLeads && propEstados) {
-      setLeads(propLeads);
-      setEstados(propEstados);
-      setLoading(false);
-      return;
-    }
-
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Obtener leads y estados en paralelo
-        const [leadsData, estadosData] = await Promise.all([
-          LeadsService.getLeads(),
-          EstadosLeadService.getEstadosLead(),
-        ]);
-
-        setLeads(leadsData);
-        setEstados(estadosData);
-      } catch (err) {
-        console.error("Error loading kanban data:", err);
-        setError(err instanceof Error ? err.message : "Error al cargar datos");
-        toast.error("Error al cargar los datos del kanban");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [propLeads, propEstados]);
-
-  // Filtrar leads por búsqueda y validar que tengan id_lead
+  // Los leads ya vienen filtrados desde el componente padre
+  // Solo necesitamos validar que tengan id_lead
   const filteredLeads = useMemo(() => {
-    // Primero filtrar solo leads válidos con id_lead
-    const validLeads = leads.filter(lead => lead.id_lead);
-
-    if (!searchTerm) return validLeads;
-    const term = searchTerm.toLowerCase();
-    return validLeads.filter(
-      (lead) =>
-        lead.nombre.toLowerCase().includes(term) ||
-        lead.apellido?.toLowerCase().includes(term) ||
-        lead.email?.toLowerCase().includes(term) ||
-        lead.telefono.includes(term) ||
-        lead.tipo_seguro_interes?.toLowerCase().includes(term)
-    );
-  }, [leads, searchTerm]);
+    return leads.filter(lead => lead.id_lead);
+  }, [leads]);
 
   // Organizar leads por columnas
   const columns: KanbanColumnType[] = useMemo(() => {
@@ -116,61 +65,14 @@ export default function LeadsKanban({
     const movedLead = leads.find((lead) => lead.id_lead === draggableId);
     if (!movedLead) return;
 
-    // Optimistic update: actualizar el estado local inmediatamente
-    const updatedLeads = leads.map((lead) =>
-      lead.id_lead === draggableId
-        ? { ...lead, id_estado: destination.droppableId }
-        : lead
-    );
-    setLeads(updatedLeads);
-
     try {
-      // Actualizar en el servidor
-      await LeadsService.updateLeadStatus(draggableId, destination.droppableId);
-
-      // Obtener el nombre del nuevo estado
-      const nuevoEstado = estados.find(
-        (e) => e.id_estado === destination.droppableId
-      );
-
-      // Mostrar notificación de éxito
-
-      // Llamar al callback si existe
-      onLeadMove?.(draggableId, destination.droppableId);
+      // Llamar al callback del componente padre que maneja la actualización
+      await onLeadMove?.(draggableId, destination.droppableId);
     } catch (err) {
-      // Revertir el cambio si falla
-      setLeads(leads);
       console.error("Error updating lead status:", err);
       toast.error("Error al actualizar el estado del lead");
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Cargando kanban...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 mb-2">Error: {error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>

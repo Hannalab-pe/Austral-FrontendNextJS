@@ -50,11 +50,11 @@ export default function UsuariosClient({ initialData }: UsuariosClientProps) {
   // Handlers
   const handleView = (usuario: Usuario) => {
     // TODO: Implementar vista de detalles
-    router.push(`/usuarios/${usuario.id_usuario}`);
+    router.push(`/usuarios/${usuario.idUsuario}`);
   };
 
   const handleEdit = (usuario: Usuario) => {
-    router.push(`/usuarios/${usuario.id_usuario}/editar`);
+    router.push(`/usuarios/${usuario.idUsuario}/editar`);
   };
 
   const handleDelete = (usuario: Usuario) => {
@@ -62,7 +62,7 @@ export default function UsuariosClient({ initialData }: UsuariosClientProps) {
       isOpen: true,
       title: '¿Eliminar usuario?',
       description: `¿Estás seguro de eliminar a ${usuario.nombre} ${usuario.apellido}? Esta acción no se puede deshacer.`,
-      action: () => deactivateUsuario.mutate(usuario.id_usuario),
+      action: () => deactivateUsuario.mutate(usuario.idUsuario),
     });
   };
 
@@ -71,7 +71,7 @@ export default function UsuariosClient({ initialData }: UsuariosClientProps) {
       isOpen: true,
       title: '¿Activar usuario?',
       description: `¿Estás seguro de activar a ${usuario.nombre} ${usuario.apellido}?`,
-      action: () => activateUsuario.mutate(usuario.id_usuario),
+      action: () => activateUsuario.mutate(usuario.idUsuario),
     });
   };
 
@@ -80,7 +80,7 @@ export default function UsuariosClient({ initialData }: UsuariosClientProps) {
       isOpen: true,
       title: '¿Desactivar usuario?',
       description: `¿Estás seguro de desactivar a ${usuario.nombre} ${usuario.apellido}? El usuario no podrá acceder al sistema.`,
-      action: () => deactivateUsuario.mutate(usuario.id_usuario),
+      action: () => deactivateUsuario.mutate(usuario.idUsuario),
     });
   };
 
@@ -89,7 +89,7 @@ export default function UsuariosClient({ initialData }: UsuariosClientProps) {
       isOpen: true,
       title: '¿Bloquear usuario?',
       description: `¿Estás seguro de bloquear a ${usuario.nombre} ${usuario.apellido}? El usuario no podrá iniciar sesión.`,
-      action: () => blockUsuario.mutate(usuario.id_usuario),
+      action: () => blockUsuario.mutate(usuario.idUsuario),
     });
   };
 
@@ -98,7 +98,7 @@ export default function UsuariosClient({ initialData }: UsuariosClientProps) {
       isOpen: true,
       title: '¿Desbloquear usuario?',
       description: `¿Estás seguro de desbloquear a ${usuario.nombre} ${usuario.apellido}?`,
-      action: () => unblockUsuario.mutate(usuario.id_usuario),
+      action: () => unblockUsuario.mutate(usuario.idUsuario),
     });
   };
 

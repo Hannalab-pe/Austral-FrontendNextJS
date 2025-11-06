@@ -5,19 +5,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { actividadSchema, type ActividadFormData } from '@/lib/schemas/actividad.schema';
 import { useActividades } from '@/lib/hooks/useActividades';
-import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TIPOS_ACTIVIDAD } from '@/types/actividad.interface';
+import { TIPOS_ACTIVIDAD, type Actividad, type TipoActividad } from '@/types/actividad.interface';
 
-export default function ActividadForm() {
+interface ActividadFormEditProps {
+  actividad: Actividad;
+}
+
+export default function ActividadFormEdit({ actividad }: ActividadFormEditProps) {
   const router = useRouter();
-  const { user } = useAuthStore();
-  const { addActividad, isCreating } = useActividades();
+  const { updateActividad, isUpdating } = useActividades();
 
   const {
     register,
@@ -27,17 +29,25 @@ export default function ActividadForm() {
   } = useForm<ActividadFormData>({
     resolver: zodResolver(actividadSchema),
     defaultValues: {
-      tipoActividad: 'OTRO' as const,
+      tipoActividad: actividad.tipoActividad as TipoActividad,
+      titulo: actividad.titulo,
+      fechaActividad: actividad.fechaActividad 
+        ? new Date(actividad.fechaActividad).toISOString().slice(0, 16) 
+        : '',
+      duracionMinutos: actividad.duracionMinutos,
+      descripcion: actividad.descripcion || '',
+      resultado: actividad.resultado || '',
+      proximaAccion: actividad.proximaAccion || '',
+      fechaProximaAccion: actividad.fechaProximaAccion 
+        ? new Date(actividad.fechaProximaAccion).toISOString().slice(0, 16) 
+        : '',
     },
   });
 
   const handleFormSubmit = async (data: ActividadFormData) => {
-    if (!user?.idUsuario) {
-      return;
-    }
-
     try {
-      await addActividad({
+      await updateActividad({
+        idActividad: actividad.idActividad,
         tipoActividad: data.tipoActividad,
         titulo: data.titulo,
         fechaActividad: new Date(data.fechaActividad).toISOString(),
@@ -45,17 +55,16 @@ export default function ActividadForm() {
         descripcion: data.descripcion,
         resultado: data.resultado,
         proximaAccion: data.proximaAccion,
-        fechaProximaAccion: data.fechaProximaAccion
-          ? new Date(data.fechaProximaAccion).toISOString()
+        fechaProximaAccion: data.fechaProximaAccion 
+          ? new Date(data.fechaProximaAccion).toISOString() 
           : undefined,
-        realizadaPorUsuario: user.idUsuario,
       });
 
-      // Redirigir al calendario después de crear
+      // Redirigir al calendario después de actualizar
       router.push('/admin/actividades');
     } catch (error) {
       // El error ya se maneja en el hook
-      console.error('Error al crear actividad:', error);
+      console.error('Error al actualizar actividad:', error);
     }
   };
 
@@ -201,11 +210,11 @@ export default function ActividadForm() {
       </Card>
 
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={handleCancel} disabled={isCreating}>
+        <Button type="button" variant="outline" onClick={handleCancel} disabled={isUpdating}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isCreating}>
-          {isCreating ? 'Registrando...' : 'Registrar Actividad'}
+        <Button type="submit" disabled={isUpdating}>
+          {isUpdating ? 'Actualizando...' : 'Actualizar Actividad'}
         </Button>
       </div>
     </form>

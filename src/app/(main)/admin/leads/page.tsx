@@ -1,140 +1,106 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useLeads } from "@/lib/hooks/useLeads";
+import { useEstadoLeads } from "@/lib/hooks/useEstadoLeads";
 import LeadsKanban from "@/components/leads/LeadsKanban";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter, Loader2 } from "lucide-react";
-import { EstadoLead, Lead } from "@/types/lead.interface";
-import { LeadsService } from "@/services/leads.service";
-import { EstadosLeadService } from "@/services/estados-lead.service";
+import { Lead } from "@/types/lead.interface";
 import { toast } from "sonner";
 
+/**
+ * Página principal de gestión de Leads
+ * Utiliza hooks useLeads y useEstadoLeads para todas las operaciones
+ */
 export default function LeadsPage() {
   const router = useRouter();
+  
+  // ==========================================
+  // STATE - Estados locales
+  // ==========================================
+  
   const [searchTerm, setSearchTerm] = useState("");
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [estados, setEstados] = useState<EstadoLead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Cargar leads y estados desde la API
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  // ==========================================
+  // HOOKS - Gestión de Leads y Estados
+  // ==========================================
+  
+  const {
+    leads,
+    isLoading: isLoadingLeads,
+    isError: isErrorLeads,
+    error: errorLeads,
+    changeLeadStatus,
+    isChangingStatus,
+  } = useLeads();
 
-        // Cargar leads y estados en paralelo
-        const [leadsData, estadosData] = await Promise.all([
-          LeadsService.getLeads(),
-          EstadosLeadService.getEstadosLead(),
-        ]);
+  const {
+    estadosLead,
+    isLoading: isLoadingEstados,
+    isError: isErrorEstados,
+    error: errorEstados,
+  } = useEstadoLeads();
 
-        setLeads(leadsData);
-        setEstados(estadosData);
-
-        // Mostrar notificación si se están usando datos mock
-        const isUsingMockData =
-          leadsData.length > 0 &&
-          leadsData[0]?.fecha_creacion?.includes("2025-10-01");
-        if (isUsingMockData) {
-          toast.info("Modo Desarrollo", {
-            description: "Usando datos de ejemplo. La API no está disponible.",
-          });
-        }
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Error desconocido";
-        setError(errorMessage);
-        toast.error("Error al cargar datos", {
-          description: errorMessage,
-        });
-        console.error("Error loading data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  // Filtrar leads por búsqueda
-  const filteredLeads = leads.filter((lead) => {
-    if (!searchTerm) return true;
+  // ==========================================
+  // COMPUTED - Valores calculados
+  // ==========================================
+  
+  // Filtrar leads por búsqueda (memoizado para optimización)
+  const filteredLeads = useMemo(() => {
+    if (!leads) return [];
+    if (!searchTerm) return leads;
+    
     const term = searchTerm.toLowerCase();
-    return (
+    return leads.filter((lead) =>
       lead.nombre.toLowerCase().includes(term) ||
       lead.apellido?.toLowerCase().includes(term) ||
       lead.email?.toLowerCase().includes(term) ||
       lead.telefono.includes(term) ||
       lead.tipo_seguro_interes?.toLowerCase().includes(term)
     );
-  });
+  }, [leads, searchTerm]);
 
-  // Manejar movimiento de lead entre columnas
+  // Estadísticas (memoizado para optimización)
+  const stats = useMemo(() => ({
+    total: leads?.length || 0,
+    activos: leads?.filter((l) => l.esta_activo).length || 0,
+    altaPrioridad: leads?.filter((l) => l.prioridad === "ALTA").length || 0,
+  }), [leads]);
+
+  // ==========================================
+  // HANDLERS - Manejadores de eventos
+  // ==========================================
+  
+  /**
+   * Manejar movimiento de lead entre columnas del Kanban
+   */
   const handleLeadMove = async (leadId: string, newEstadoId: string) => {
     try {
-      // Actualizar localmente primero para feedback inmediato
-      setLeads((prevLeads) =>
-        prevLeads.map((lead) =>
-          lead.id_lead === leadId ? { ...lead, id_estado: newEstadoId } : lead
-        )
-      );
-
-      // Intentar actualizar en la API
-      try {
-        await LeadsService.updateLeadStatus(leadId, newEstadoId);
-        toast.success("Lead actualizado", {
-          description: "El estado del lead ha sido actualizado correctamente.",
-        });
-      } catch (apiError) {
-        // Si la API falla, revertir el cambio local
-        const originalLead = leads.find(l => l.id_lead === leadId);
-        if (originalLead) {
-          setLeads((prevLeads) =>
-            prevLeads.map((lead) =>
-              lead.id_lead === leadId
-                ? { ...lead, id_estado: originalLead.id_estado } // Mantener el estado original
-                : lead
-            )
-          );
-        }
-
-        const errorMessage =
-          apiError instanceof Error
-            ? apiError.message
-            : "Error al actualizar lead";
-        toast.warning("Actualización Local", {
-          description: "Cambio aplicado localmente. " + errorMessage,
-        });
-      }
+      await changeLeadStatus(leadId, newEstadoId);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error al actualizar lead";
-      toast.error("Error al actualizar lead", {
-        description: errorMessage,
-      });
-      console.error("Error updating lead status:", err);
+      // El error ya fue manejado por el hook con toast
+      console.error("Error moving lead:", err);
     }
   };
 
-  // Manejar click en un lead
+  /**
+   * Manejar click en un lead del Kanban
+   */
   const handleLeadClick = (lead: Lead) => {
-    toast.info("Detalle del lead", {
-      description: `${lead.nombre} ${lead.apellido || ""}`,
-    });
-    // Aquí se podría abrir un modal o navegar a la página de detalle
-    // router.push(`/leads/${lead.id_lead}`);
+    // Navegar a la página de detalle del lead
+    router.push(`/admin/leads/${lead.id_lead}`);
   };
 
-  // Estadísticas rápidas
-  const stats = {
-    total: leads.length,
-    activos: leads.filter((l) => l.esta_activo).length,
-    alta_prioridad: leads.filter((l) => l.prioridad === "ALTA").length,
-  };
+  // ==========================================
+  // RENDER - Estados de carga y error
+  // ==========================================
+  
+  const loading = isLoadingLeads || isLoadingEstados;
+  const isError = isErrorLeads || isErrorEstados;
+  const error = errorLeads || errorEstados;
 
   if (loading) {
     return (
@@ -147,12 +113,12 @@ export default function LeadsPage() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Error al cargar los leads</p>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4">Error al cargar los datos</p>
+          <p className="text-gray-600 mb-4">{error?.message || "Error desconocido"}</p>
           <Button onClick={() => window.location.reload()} variant="outline">
             Reintentar
           </Button>
@@ -160,6 +126,10 @@ export default function LeadsPage() {
       </div>
     );
   }
+
+  // ==========================================
+  // RENDER - Vista principal
+  // ==========================================
 
   return (
     <div className="space-y-6">
@@ -170,7 +140,21 @@ export default function LeadsPage() {
           <p className="text-gray-600 mt-1">
             Gestiona y da seguimiento a tus oportunidades de negocio
           </p>
+          
+          {/* Estadísticas rápidas */}
+          <div className="flex gap-4 mt-3 text-sm">
+            <span className="text-gray-600">
+              Total: <span className="font-semibold text-gray-900">{stats.total}</span>
+            </span>
+            <span className="text-gray-600">
+              Activos: <span className="font-semibold text-green-600">{stats.activos}</span>
+            </span>
+            <span className="text-gray-600">
+              Alta Prioridad: <span className="font-semibold text-red-600">{stats.altaPrioridad}</span>
+            </span>
+          </div>
         </div>
+        
         <Button onClick={() => router.push("/admin/leads/nuevo")}>
           <Plus className="h-4 w-4 mr-2" />
           Nuevo Lead
@@ -188,26 +172,44 @@ export default function LeadsPage() {
             className="pl-10"
           />
         </div>
-        <Button variant="outline">
-          <Filter className="h-4 w-4 mr-2" />
-          Filtros
-        </Button>
       </div>
 
       {/* Vista Kanban */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Pipeline de Ventas
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Pipeline de Ventas
+            </h2>
+            {isChangingStatus && (
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Actualizando...</span>
+              </div>
+            )}
+          </div>
         </div>
+        
         <div className="p-6">
-          <LeadsKanban
-            leads={filteredLeads}
-            estados={estados}
-            onLeadMove={handleLeadMove}
-            onLeadClick={handleLeadClick}
-          />
+          {filteredLeads.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg mb-2">
+                {searchTerm ? "No se encontraron leads" : "No hay leads registrados"}
+              </p>
+              <p className="text-gray-400 text-sm">
+                {searchTerm 
+                  ? "Intenta con otros términos de búsqueda" 
+                  : "Comienza creando tu primer lead"}
+              </p>
+            </div>
+          ) : (
+            <LeadsKanban
+              leads={filteredLeads}
+              estados={estadosLead || []}
+              onLeadMove={handleLeadMove}
+              onLeadClick={handleLeadClick}
+            />
+          )}
         </div>
       </div>
     </div>

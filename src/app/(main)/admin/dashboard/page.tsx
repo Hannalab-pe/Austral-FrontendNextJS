@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { clientesService } from '@/services/clientes.service';
-import { actividadService } from '@/services/actividad.service';
+import { ActividadService } from '@/services/actividad.service';
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
 import { ActivitiesChart } from '@/components/dashboard/ActivitiesChart';
 import { UpcomingBirthdays } from '@/components/dashboard/UpcomingBirthdays';
@@ -11,7 +11,7 @@ async function getDashboardData() {
   try {
     const [clienteStats, actividades, cumpleanos] = await Promise.all([
       clientesService.getStats(),
-      actividadService.getAll(),
+      ActividadService.getAll(),
       clientesService.getCumpleanosProximos(30),
     ]);
 

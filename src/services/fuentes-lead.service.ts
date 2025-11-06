@@ -1,53 +1,57 @@
+import { useQuery } from "@tanstack/react-query";
+import { leadsClient } from "@/lib/api/api";
 import { FuenteLead } from "@/types/lead.interface";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_FUENTES_LEAD_SERVICE_URL || "/api";
+// ==========================================
+// CONSTANTES
+// ==========================================
 
-/**
- * Servicio para gestionar operaciones relacionadas con fuentes de lead
- */
-export class FuentesLeadService {
-  /**
-   * Obtiene todas las fuentes de lead desde la API
-   */
-  static async getFuentesLead(): Promise<FuenteLead[]> {
-    const response = await fetch(`${API_BASE_URL}/fuentes-lead`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+export const FUENTES_LEAD_KEY = ["fuentes-lead"];
 
-    if (!response.ok) {
-      throw new Error(
-        `Error al obtener fuentes: ${response.status} ${response.statusText}`
-      );
-    }
+// ==========================================
+// API - Funciones de servicio
+// ==========================================
 
-    const data: FuenteLead[] = await response.json();
-    return data;
-  }
+const fuentesLeadApi = {
+  getAll: async (): Promise<FuenteLead[]> => {
+    const response = await leadsClient.get<FuenteLead[]>("/fuentes-lead");
+    return response.data || [];
+  },
 
-  /**
-   * Obtiene una fuente específica por ID
-   */
-  static async getFuenteLeadById(id: string): Promise<FuenteLead | null> {
-    const response = await fetch(`${API_BASE_URL}/fuentes-lead/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+  getById: async (id: string): Promise<FuenteLead> => {
+    const response = await leadsClient.get<FuenteLead>(`/fuentes-lead/${id}`);
+    return response.data;
+  },
+};
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(
-        `Error al obtener fuente: ${response.status} ${response.statusText}`
-      );
-    }
+// ==========================================
+// HOOKS - TanStack Query
+// ==========================================
 
-    const fuente: FuenteLead = await response.json();
-    return fuente;
-  }
-}
+const useGetAll = () => {
+  return useQuery({
+    queryKey: FUENTES_LEAD_KEY,
+    queryFn: fuentesLeadApi.getAll,
+  });
+};
+
+const useGetById = (id: string) => {
+  return useQuery({
+    queryKey: [...FUENTES_LEAD_KEY, id],
+    queryFn: () => fuentesLeadApi.getById(id),
+    enabled: !!id,
+  });
+};
+
+// ==========================================
+// EXPORTACIÓN - Servicio completo
+// ==========================================
+
+export const FuentesLeadService = {
+  // API functions
+  ...fuentesLeadApi,
+
+  // Hooks
+  useGetAll,
+  useGetById,
+};

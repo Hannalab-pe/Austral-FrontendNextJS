@@ -20,18 +20,26 @@ import { Loader2 } from "lucide-react";
 import { useLeads } from "@/lib/hooks/useLeads";
 import { useEstadoLeads } from "@/lib/hooks/useEstadoLeads";
 import { FuentesLeadService } from "@/services/fuentes-lead.service";
-import { CreateLeadDto } from "@/types/lead.interface";
+import { UpdateLeadDto, Lead } from "@/types/lead.interface";
 
-interface LeadFormProps {
-  initialData?: Partial<LeadFormData>;
+interface LeadFormEditProps {
+  lead: Lead;
 }
 
-export default function LeadForm({ initialData }: LeadFormProps) {
+export default function LeadFormEdit({ lead }: LeadFormEditProps) {
   const router = useRouter();
 
-  const { addLead, isCreating } = useLeads();
+  // ==========================================
+  // HOOKS - Gestión de datos
+  // ==========================================
+
+  const { updateLead, isUpdating } = useLeads();
   const { estadosLead, isLoading: isLoadingEstados } = useEstadoLeads();
   const { data: fuentes, isLoading: isLoadingFuentes } = FuentesLeadService.useGetAll();
+
+  // ==========================================
+  // FORM - React Hook Form con datos iniciales del lead
+  // ==========================================
 
   const {
     register,
@@ -41,9 +49,20 @@ export default function LeadForm({ initialData }: LeadFormProps) {
   } = useForm<LeadFormData>({
     resolver: zodResolver(leadSchema) as any,
     defaultValues: {
-      puntaje_calificacion: 0,
-      prioridad: "MEDIA",
-      ...initialData,
+      nombre: lead.nombre,
+      apellido: lead.apellido || "",
+      email: lead.email || "",
+      telefono: lead.telefono,
+      fecha_nacimiento: lead.fecha_nacimiento || "",
+      tipo_seguro_interes: lead.tipo_seguro_interes || "",
+      presupuesto_aproximado: lead.presupuesto_aproximado,
+      notas: lead.notas || "",
+      puntaje_calificacion: lead.puntaje_calificacion || 0,
+      prioridad: lead.prioridad,
+      proxima_fecha_seguimiento: lead.proxima_fecha_seguimiento || "",
+      id_estado: lead.id_estado,
+      id_fuente: lead.id_fuente,
+      asignado_a_usuario: lead.asignado_a_usuario || "",
     },
   });
 
@@ -52,8 +71,9 @@ export default function LeadForm({ initialData }: LeadFormProps) {
   // ==========================================
 
   const handleFormSubmit: SubmitHandler<LeadFormData> = async (data) => {
-    // Construir el DTO para crear el lead
-    const leadData: CreateLeadDto = {
+    // Construir el DTO para actualizar el lead
+    const updateData: UpdateLeadDto = {
+      id_lead: lead.id_lead,
       nombre: data.nombre,
       apellido: data.apellido,
       email: data.email,
@@ -71,20 +91,20 @@ export default function LeadForm({ initialData }: LeadFormProps) {
     };
 
     try {
-      await addLead(leadData);
+      await updateLead(updateData);
       
-      // Redirigir a la lista de leads después de crear
+      // Redirigir al detalle del lead después de actualizar
       setTimeout(() => {
-        router.push("/admin/leads");
+        router.push(`/admin/leads/${lead.id_lead}`);
       }, 1000);
     } catch (error) {
       // El error ya fue manejado por el hook con toast
-      console.error("Error creating lead:", error);
+      console.error("Error updating lead:", error);
     }
   };
 
   const handleCancel = () => {
-    router.push("/admin/leads");
+    router.push(`/admin/leads/${lead.id_lead}`);
   };
 
   // ==========================================
@@ -133,7 +153,7 @@ export default function LeadForm({ initialData }: LeadFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="apellido">Apellido *</Label>
+              <Label htmlFor="apellido">Apellido</Label>
               <Input
                 id="apellido"
                 placeholder="Apellido del lead"
@@ -147,7 +167,7 @@ export default function LeadForm({ initialData }: LeadFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -355,7 +375,7 @@ export default function LeadForm({ initialData }: LeadFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="proxima_fecha_seguimiento">
-                Próxima Fecha de Seguimiento *
+                Próxima Fecha de Seguimiento
               </Label>
               <Input
                 id="proxima_fecha_seguimiento"
@@ -391,24 +411,22 @@ export default function LeadForm({ initialData }: LeadFormProps) {
           type="button"
           variant="outline"
           onClick={handleCancel}
-          disabled={isCreating}
+          disabled={isUpdating}
         >
           Cancelar
         </Button>
         <Button
           type="submit"
-          disabled={isCreating}
+          disabled={isUpdating}
           className="bg-blue-700 hover:bg-blue-800"
         >
-          {isCreating ? (
+          {isUpdating ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Guardando...
+              Actualizando...
             </>
-          ) : initialData ? (
-            "Actualizar Lead"
           ) : (
-            "Registrar Lead"
+            "Actualizar Lead"
           )}
         </Button>
       </div>

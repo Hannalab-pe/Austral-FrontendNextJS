@@ -1,112 +1,144 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { actividadService } from '@/services/actividad.service';
-import { actividadesKeys } from '@/lib/constants/query-keys';
-import { CreateActividadDto, UpdateActividadDto, ActividadFiltros } from '@/types/actividad.interface';
-import { toast } from 'sonner';
+import { ActividadService } from "@/services/actividad.service";
+import {
+    CreateActividadDto,
+    UpdateActividadDto,
+} from '@/types/actividad.interface';
+import { toast } from "sonner";
+import { getErrorMessage } from "../utils/getErrorMessage";
 
-// Hook para obtener todas las actividades
-export const useActividades = (filtros?: ActividadFiltros) => {
-    return useQuery({
-        queryKey: actividadesKeys.list(filtros),
-        queryFn: () => actividadService.getAll(),
-        staleTime: 5 * 60 * 1000, // 5 minutos
-    });
-};
+export const useActividades = () => {
 
-// Hook para obtener actividades por usuario
-export const useActividadesByUsuario = (realizadaPorUsuario: string) => {
-    return useQuery({
-        queryKey: actividadesKeys.byUsuario(realizadaPorUsuario),
-        queryFn: () => actividadService.getByUsuario(realizadaPorUsuario),
-        enabled: !!realizadaPorUsuario,
-        staleTime: 5 * 60 * 1000,
-    });
-};
+    // ==========================================
+    // QUERIES - Hooks de React Query
+    // ==========================================
 
-// Hook para obtener actividades por tipo
-export const useActividadesByTipo = (tipo: string) => {
-    return useQuery({
-        queryKey: actividadesKeys.byTipo(tipo),
-        queryFn: () => actividadService.getByTipo(tipo),
-        enabled: !!tipo,
-        staleTime: 5 * 60 * 1000,
-    });
-};
+    const {
+        data: actividades,
+        isLoading,
+        isError,
+        error,
+        refetch,
+    } = ActividadService.useGetAll(); // Obtener todas las actividades
 
-// Hook para obtener actividades por rango de fechas
-export const useActividadesByFechaRange = (fechaInicio: Date, fechaFin: Date) => {
-    return useQuery({
-        queryKey: actividadesKeys.byFechaRange(fechaInicio, fechaFin),
-        queryFn: () => actividadService.getByFechaRange(fechaInicio, fechaFin),
-        enabled: !!fechaInicio && !!fechaFin,
-        staleTime: 5 * 60 * 1000,
-    });
-};
+    // ==========================================
+    // MUTATIONS - Hooks de React Query
+    // ==========================================
 
-// Hook para obtener una actividad específica
-export const useActividad = (id: string) => {
-    return useQuery({
-        queryKey: actividadesKeys.detail(id),
-        queryFn: () => actividadService.getById(id),
-        enabled: !!id,
-        staleTime: 5 * 60 * 1000,
-    });
-};
+    const createMutation = ActividadService.useCreate();
+    const updateMutation = ActividadService.useUpdate();
+    const deleteMutation = ActividadService.useDelete();
 
-// Hook para crear una actividad
-export const useCreateActividad = () => {
-    const queryClient = useQueryClient();
+    // ==========================================
+    // FUNCIONES - Wrappers con manejo de errores
+    // ==========================================
 
-    return useMutation({
-        mutationFn: (data: CreateActividadDto) => actividadService.create(data),
-        onSuccess: () => {
-            // Invalidar queries relacionadas
-            queryClient.invalidateQueries({ queryKey: actividadesKeys.all });
+    const addActividad = async (data: CreateActividadDto) => {
+        try {
+            const actividad = await createMutation.mutateAsync(data);
+            toast.success("Actividad creada con éxito");
+            return actividad;
+        } catch (err) {
+            const errorMessage = getErrorMessage(err, "Error al crear la actividad");
+            toast.error(errorMessage);
+            throw err;
+        }
+    }; // Crear una nueva actividad
 
-            toast.success('Actividad creada exitosamente');
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Error al crear la actividad');
-        },
-    });
-};
+    const updateActividad = async (data: UpdateActividadDto & { idActividad: string }) => {
+        try {
+            // Extraer idActividad del objeto
+            const { idActividad, ...restData } = data;
 
-// Hook para actualizar una actividad
-export const useUpdateActividad = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: UpdateActividadDto }) =>
-            actividadService.update(id, data),
-        onSuccess: (updatedActividad) => {
-            // Invalidar queries relacionadas
-            queryClient.invalidateQueries({ queryKey: actividadesKeys.all });
-            queryClient.invalidateQueries({
-                queryKey: actividadesKeys.detail(updatedActividad.idActividad)
+            // El resto de los datos son compatibles con UpdateActividadDto (sin idActividad)
+            const actividad = await updateMutation.mutateAsync({
+                id: idActividad,
+                data: restData as UpdateActividadDto,
             });
 
-            toast.success('Actividad actualizada exitosamente');
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Error al actualizar la actividad');
-        },
-    });
+            toast.success("Actividad actualizada con éxito");
+            return actividad;
+        } catch (err) {
+            const errorMessage = getErrorMessage(err, "Error al actualizar la actividad");
+            toast.error(errorMessage);
+            throw err;
+        }
+    }; // Actualizar una actividad existente
+
+    const removeActividad = async (id: string) => {
+        try {
+            await deleteMutation.mutateAsync(id);
+            toast.success("Actividad eliminada con éxito");
+        } catch (err) {
+            const errorMessage = getErrorMessage(err, "Error al eliminar la actividad");
+            toast.error(errorMessage);
+            throw err;
+        }
+    }; // Eliminar una actividad por ID
+
+    // ==========================================
+    // RETORNO - API pública del hook
+    // ==========================================
+
+    return {
+        // Datos
+        actividades,
+        isLoading,
+        isError,
+        error,
+        refetch,
+
+        // Estados de mutaciones
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+
+        // Funciones
+        addActividad,
+        updateActividad,
+        removeActividad,
+    };
 };
 
-// Hook para eliminar una actividad
-export const useDeleteActividad = () => {
-    const queryClient = useQueryClient();
+/**
+ * Hook para obtener una actividad específica por ID
+ * Usar cuando necesites cargar una sola actividad
+ */
+export const useActividad = (actividadId: string) => {
+    const {
+        data: actividad,
+        isLoading,
+        isError,
+        error,
+        refetch,
+    } = ActividadService.useGetById(actividadId);
 
-    return useMutation({
-        mutationFn: (id: string) => actividadService.delete(id),
-        onSuccess: () => {
-            // Invalidar queries relacionadas
-            queryClient.invalidateQueries({ queryKey: actividadesKeys.all });
+    return {
+        actividad,
+        isLoading,
+        isError,
+        error,
+        refetch,
+    };
+};
 
-            toast.success('Actividad eliminada exitosamente');
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Error al eliminar la actividad');
-        },
-    });
+/**
+ * Hook para obtener actividades de un usuario específico
+ * Usar cuando necesites filtrar por usuario
+ */
+export const useActividadesPorUsuario = (userId: string) => {
+    const {
+        data: actividades,
+        isLoading,
+        isError,
+        error,
+        refetch,
+    } = ActividadService.useGetByUserId(userId);
+
+    return {
+        actividades,
+        isLoading,
+        isError,
+        error,
+        refetch,
+    };
 };

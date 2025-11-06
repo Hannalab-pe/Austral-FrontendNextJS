@@ -1,3 +1,4 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { activitiesClient } from '@/lib/api/api';
 import {
     Actividad,
@@ -5,127 +6,113 @@ import {
     UpdateActividadDto,
 } from '@/types/actividad.interface';
 
-export const actividadService = {
-    /**
-     * Obtiene todas las actividades
-     */
-    async getAll(): Promise<Actividad[]> {
-        try {
-            const response = await activitiesClient.get<Actividad[]>('/actividades');
-            return response.data;
-        } catch (error: unknown) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || error.message
-                : 'Error al obtener actividades';
-            throw new Error(message);
-        }
+export const ACTIVIDAD_KEY = ['actividad'];
+
+// ==========================================
+// API - Funciones de servicio
+// ==========================================
+
+export const actividadApi = {
+    getAll: async (): Promise<Actividad[]> => {
+        const response = await activitiesClient.get<Actividad[]>('/actividades');
+        return response.data;
     },
 
-    /**
-     * Obtiene actividades por usuario (campo realizadoPorUsuario)
-     */
-    async getByUsuario(realizadaPorUsuario: string): Promise<Actividad[]> {
-        try {
-            const response = await activitiesClient.get<Actividad[]>(`/actividades/usuario/${realizadaPorUsuario}`);
-            return response.data;
-        } catch (error: unknown) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || error.message
-                : 'Error al obtener actividades del usuario';
-            throw new Error(message);
-        }
+    getById: async (id: string): Promise<Actividad> => {
+        const response = await activitiesClient.get<Actividad>(`/actividades/${id}`);
+        return response.data;
     },
 
-    /**
-     * Obtiene actividades por tipo
-     */
-    async getByTipo(tipo: string): Promise<Actividad[]> {
-        try {
-            const response = await activitiesClient.get<Actividad[]>(`/actividades/tipo/${tipo}`);
-            return response.data;
-        } catch (error: unknown) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || error.message
-                : 'Error al obtener actividades por tipo';
-            throw new Error(message);
-        }
+    getByUserId: async (userId: string): Promise<Actividad[]> => {
+        const response = await activitiesClient.get<Actividad[]>(`/actividades/usuario/${userId}`);
+        return response.data;
     },
 
-    /**
-     * Obtiene actividades por rango de fechas
-     */
-    async getByFechaRange(fechaInicio: Date, fechaFin: Date): Promise<Actividad[]> {
-        try {
-            const params = new URLSearchParams({
-                fechaInicio: fechaInicio.toISOString(),
-                fechaFin: fechaFin.toISOString(),
-            });
-            const response = await activitiesClient.get<Actividad[]>(`/actividades/fecha-rango?${params}`);
-            return response.data;
-        } catch (error: unknown) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || error.message
-                : 'Error al obtener actividades por rango de fechas';
-            throw new Error(message);
-        }
+    create: async (data: CreateActividadDto): Promise<Actividad> => {
+        const response = await activitiesClient.post<Actividad>('/actividades', data);
+        return response.data;
     },
 
-    /**
-     * Obtiene una actividad por ID
-     */
-    async getById(id: string): Promise<Actividad> {
-        try {
-            const response = await activitiesClient.get<Actividad>(`/actividades/${id}`);
-            return response.data;
-        } catch (error: unknown) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || error.message
-                : 'Error al obtener la actividad';
-            throw new Error(message);
-        }
+    update: async (id: string, data: UpdateActividadDto): Promise<Actividad> => {
+        const response = await activitiesClient.patch<Actividad>(`/actividades/${id}`, data);
+        return response.data;
     },
 
-    /**
-     * Crea una nueva actividad
-     */
-    async create(data: CreateActividadDto): Promise<Actividad> {
-        try {
-            const response = await activitiesClient.post<Actividad>('/actividades', data);
-            return response.data;
-        } catch (error: unknown) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || error.message
-                : 'Error al crear la actividad';
-            throw new Error(message);
-        }
+    delete: async (id: string): Promise<void> => {
+        await activitiesClient.delete(`/actividades/${id}`);
     },
+};
+// ==========================================
+// HOOKS - TanStack Query
+// ==========================================
 
-    /**
-     * Actualiza una actividad
-     */
-    async update(id: string, data: UpdateActividadDto): Promise<Actividad> {
-        try {
-            const response = await activitiesClient.patch<Actividad>(`/actividades/${id}`, data);
-            return response.data;
-        } catch (error: unknown) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || error.message
-                : 'Error al actualizar la actividad';
-            throw new Error(message);
-        }
-    },
+const useGetAll = () => {
+    return useQuery({
+        queryKey: ACTIVIDAD_KEY,
+        queryFn: actividadApi.getAll,
+    });
+};
 
-    /**
-     * Elimina una actividad
-     */
-    async delete(id: string): Promise<void> {
-        try {
-            await activitiesClient.delete(`/actividades/${id}`);
-        } catch (error: unknown) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || error.message
-                : 'Error al eliminar la actividad';
-            throw new Error(message);
-        }
-    },
+const useGetById = (id: string) => {
+    return useQuery({
+        queryKey: [...ACTIVIDAD_KEY, id],
+        queryFn: () => actividadApi.getById(id),
+        enabled: !!id,
+    });
+};
+
+const useGetByUserId = (userId: string) => {
+    return useQuery({
+        queryKey: [...ACTIVIDAD_KEY, 'user', userId],
+        queryFn: () => actividadApi.getByUserId(userId),
+        enabled: !!userId,
+    });
+};
+
+const useCreate = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: actividadApi.create,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ACTIVIDAD_KEY });
+        },
+    });
+};
+
+const useUpdate = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: UpdateActividadDto }) =>
+            actividadApi.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ACTIVIDAD_KEY });
+        },
+    });
+};
+
+const useDelete = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: string) => actividadApi.delete(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ACTIVIDAD_KEY });
+        },
+    });
+};
+
+
+export const ActividadService = {
+    // API functions
+    ...actividadApi,
+
+    // Hooks
+    useGetAll,
+    useGetById,
+    useGetByUserId,
+    useCreate,
+    useUpdate,
+    useDelete,
 };

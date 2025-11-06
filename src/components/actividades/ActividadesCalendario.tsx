@@ -1,55 +1,28 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Calendar, dateFnsLocalizer, View, Views, ToolbarProps } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { Calendar, View, Views } from 'react-big-calendar';
 import { useRouter } from 'next/navigation';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-import { useActividadesByUsuario } from '@/lib/hooks/useActividades';
+import { useActividadesPorUsuario } from '@/lib/hooks/useActividades';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
 import {
-  Actividad,
-  ActividadCalendario,
-  COLORES_ACTIVIDAD,
-  TipoActividad
-} from '@/types/actividad.interface';
+  calendarLocalizer,
+  calendarMessages,
+  CALENDAR_CULTURE,
+  CALENDAR_DEFAULT_HEIGHT,
+  actividadesToCalendarEvents,
+  CalendarToolbar,
+  CalendarEvent,
+  calendarEventPropGetter,
+} from '@/lib/calendar';
+import { ActividadCalendario } from '@/types/actividad.interface';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, PlusIcon, FilterIcon } from 'lucide-react';
-import { FlipCard } from '../animations/FlipCard';
 import { SlideUp } from '../animations/SlideUp';
-
-// Configuración del localizer para español
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales: {
-    es: es,
-  },
-});
-
-// Mensajes en español para el calendario
-const messages = {
-  allDay: 'Todo el día',
-  previous: 'Anterior',
-  next: 'Siguiente',
-  today: 'Hoy',
-  month: 'Mes',
-  week: 'Semana',
-  day: 'Día',
-  agenda: 'Agenda',
-  date: 'Fecha',
-  time: 'Hora',
-  event: 'Evento',
-  noEventsInRange: 'No hay actividades en este rango.',
-  showMore: (total: number) => `+ Ver ${total} más`,
-};
 
 interface ActividadesCalendarioProps {
   className?: string;
@@ -62,7 +35,7 @@ export function ActividadesCalendario({ className }: ActividadesCalendarioProps)
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Obtener actividades del usuario actual
-  const { data: actividades, isLoading, error } = useActividadesByUsuario(user?.idUsuario || '');
+  const { actividades, isLoading, error } = useActividadesPorUsuario(user?.idUsuario || '');
 
   // Determinar el prefijo de ruta según el rol del usuario
   const rolePrefix = useMemo(() => {
@@ -81,25 +54,7 @@ export function ActividadesCalendario({ className }: ActividadesCalendarioProps)
 
   // Convertir actividades al formato del calendario
   const eventosCalendario: ActividadCalendario[] = useMemo(() => {
-    if (!actividades) return [];
-
-    return actividades.map((actividad: Actividad) => {
-      const fechaInicio = new Date(actividad.fechaActividad);
-      const fechaFin = actividad.duracionMinutos
-        ? new Date(fechaInicio.getTime() + actividad.duracionMinutos * 60000)
-        : new Date(fechaInicio.getTime() + 60 * 60000); // 1 hora por defecto
-
-      return {
-        id: actividad.idActividad,
-        title: actividad.titulo,
-        start: fechaInicio,
-        end: fechaFin,
-        resource: actividad,
-        backgroundColor: COLORES_ACTIVIDAD[actividad.tipoActividad as TipoActividad] || COLORES_ACTIVIDAD.OTRO,
-        borderColor: COLORES_ACTIVIDAD[actividad.tipoActividad as TipoActividad] || COLORES_ACTIVIDAD.OTRO,
-        textColor: '#ffffff',
-      };
-    });
+    return actividadesToCalendarEvents(actividades || []);
   }, [actividades]);
 
   // Manejar clic en evento para editar
@@ -110,85 +65,6 @@ export function ActividadesCalendario({ className }: ActividadesCalendarioProps)
   // Manejar clic en botón nueva actividad
   const handleNuevaActividad = () => {
     router.push(`/${rolePrefix}/actividades/nuevo`);
-  };
-
-  // Componente personalizado para los eventos en el calendario
-  const EventComponent = ({ event }: { event: ActividadCalendario }) => {
-    return (
-      <div className="text-xs font-medium truncate">
-        <div className="flex items-center gap-1">
-          <Badge
-            variant="secondary"
-            className="text-xs px-1 py-0"
-            style={{
-              backgroundColor: event.backgroundColor,
-              color: event.textColor,
-              border: 'none'
-            }}
-          >
-            {event.resource?.tipoActividad}
-          </Badge>
-          <span className="truncate">{event.title}</span>
-        </div>
-      </div>
-    );
-  };
-
-  // Componente personalizado para el toolbar del calendario
-  const CustomToolbar = ({ label, onNavigate, onView }: ToolbarProps<ActividadCalendario>) => {
-    return (
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onNavigate('PREV')}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onNavigate('TODAY')}
-          >
-            Hoy
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onNavigate('NEXT')}
-          >
-            Siguiente
-          </Button>
-        </div>
-
-        <h2 className="text-lg font-semibold">{label}</h2>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant={currentView === Views.MONTH ? "default" : "outline"}
-            size="sm"
-            onClick={() => onView(Views.MONTH)}
-          >
-            Mes
-          </Button>
-          <Button
-            variant={currentView === Views.WEEK ? "default" : "outline"}
-            size="sm"
-            onClick={() => onView(Views.WEEK)}
-          >
-            Semana
-          </Button>
-          <Button
-            variant={currentView === Views.DAY ? "default" : "outline"}
-            size="sm"
-            onClick={() => onView(Views.DAY)}
-          >
-            Día
-          </Button>
-        </div>
-      </div>
-    );
   };
 
   if (isLoading) {
@@ -251,32 +127,32 @@ export function ActividadesCalendario({ className }: ActividadesCalendarioProps)
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[600px]">
+        <div style={{ height: CALENDAR_DEFAULT_HEIGHT }}>
           <Calendar
-            localizer={localizer}
+            localizer={calendarLocalizer}
             events={eventosCalendario}
             startAccessor="start"
             endAccessor="end"
             style={{ height: '100%' }}
-            views={[Views.MONTH, Views.WEEK, Views.DAY]}
+            views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
             view={currentView}
             onView={setCurrentView}
             date={currentDate}
             onNavigate={setCurrentDate}
-            messages={messages}
-            culture="es"
+            messages={calendarMessages}
+            culture={CALENDAR_CULTURE}
             onSelectEvent={handleEventClick}
             components={{
-              toolbar: CustomToolbar,
-              event: EventComponent,
+              toolbar: (props) => (
+                <CalendarToolbar
+                  {...props}
+                  currentView={currentView}
+                  onViewChange={setCurrentView}
+                />
+              ),
+              event: CalendarEvent,
             }}
-            eventPropGetter={(event: ActividadCalendario) => ({
-              style: {
-                backgroundColor: event.backgroundColor,
-                borderColor: event.borderColor,
-                color: event.textColor,
-              },
-            })}
+            eventPropGetter={calendarEventPropGetter}
           />
         </div>
       </CardContent>
